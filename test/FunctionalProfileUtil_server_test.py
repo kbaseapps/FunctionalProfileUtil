@@ -44,7 +44,11 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         cls.callback_url = os.environ['SDK_CALLBACK_URL']
         suffix = int(time.time() * 1000)
         cls.wsName = "test_ContigFilter_" + str(suffix)
-        ret = cls.wsClient.create_workspace({'workspace': cls.wsName})  # noqa
+        ret = cls.wsClient.create_workspace({'workspace': cls.wsName})
+        cls.wsId = ret[0]
+
+        print('fdasfdsa')
+        print(ret)
 
     @classmethod
     def tearDownClass(cls):
@@ -52,16 +56,10 @@ class FunctionalProfileUtilTest(unittest.TestCase):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
 
-    # NOTE: According to Python unittest naming rules test method names should start from 'test'. # noqa
-    def test_your_method(self):
-        # Prepare test objects in workspace if needed using
-        # self.getWsClient().save_objects({'workspace': self.getWsName(),
-        #                                  'objects': []})
-        #
-        # Run your method by
-        # ret = self.getImpl().your_method(self.getContext(), parameters...)
-        #
-        # Check returned data with
-        # self.assertEqual(ret[...], ...) or other unittest methods
-        ret = self.serviceImpl.run_FunctionalProfileUtil(self.ctx, {'workspace_name': self.wsName,
-                                                             'parameter_1': 'Hello World!'})
+    def test_import_func_profile_fail(self):
+        with self.assertRaisesRegex(ValueError, "Required keys"):
+            self.serviceImpl.import_func_profile(self.ctx, {})
+
+    # def test_import_func_profile(self):
+    #     ret = self.serviceImpl.import_func_profile(self.ctx, {'workspace_name': self.wsName,
+    #                                                          'parameter_1': 'Hello World!'})

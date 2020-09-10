@@ -34,6 +34,9 @@ module FunctionalProfileUtil {
     } OrgProfile;
 
     typedef structure {
+        int workspace_id;
+        string func_profile_obj_name;
+
         WSRef original_matrix_ref;
         CommProfile community_profile;
         OrgProfile organism_profile;
