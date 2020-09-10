@@ -9,6 +9,7 @@ from installed_clients.DataFileUtilClient import DataFileUtil
 from FunctionalProfileUtil.Utils.SampleServiceUtil import SampleServiceUtil
 
 DATA_EPISTEMOLOGY = ['measured', 'asserted', 'predicted']
+DEFAULT_PATHWAY_NAME = ['pathway', 'EC', 'KO']
 
 
 class ProfileImporter:
@@ -139,7 +140,7 @@ class ProfileImporter:
             profile_data = self._build_profile_table(profile_file_path, data_ids,
                                                      staging_file=staging_file)
 
-            if profile_name in ['pathway', 'EC', 'KO']:
+            if profile_name in DEFAULT_PATHWAY_NAME:
                 gen_profile_data[profile_name] = {'data_epistemology': data_epistemology,
                                                   'epistemology_method': epistemology_method,
                                                   'description': description,

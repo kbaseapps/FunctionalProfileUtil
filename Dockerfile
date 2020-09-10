@@ -6,8 +6,6 @@ MAINTAINER KBase Developer
 # install line here, a git checkout to download code, or run any other
 # installation scripts.
 
-# RUN echo "start building docker image"
-
 # RUN apt-get update
 
 RUN pip install --upgrade pip \
@@ -15,6 +13,7 @@ RUN pip install --upgrade pip \
 
 RUN pip install numpy==1.19.1 \
     && pip install pandas==1.1.1 \
+    && pip install mock==4.0.2 \
     && pip install xlrd==1.2.0
 # -----------------------------------------
 
