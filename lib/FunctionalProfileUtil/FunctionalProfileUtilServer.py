@@ -338,10 +338,10 @@ class Application(object):
         self.serverlog.set_log_level(6)
         self.rpc_service = JSONRPCServiceCustom()
         self.method_authentication = dict()
-        self.rpc_service.add(impl_FunctionalProfileUtil.run_FunctionalProfileUtil,
-                             name='FunctionalProfileUtil.run_FunctionalProfileUtil',
+        self.rpc_service.add(impl_FunctionalProfileUtil.import_func_profile,
+                             name='FunctionalProfileUtil.import_func_profile',
                              types=[dict])
-        self.method_authentication['FunctionalProfileUtil.run_FunctionalProfileUtil'] = 'required'  # noqa
+        self.method_authentication['FunctionalProfileUtil.import_func_profile'] = 'required'  # noqa
         self.rpc_service.add(impl_FunctionalProfileUtil.status,
                              name='FunctionalProfileUtil.status',
                              types=[dict])

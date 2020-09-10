@@ -23,8 +23,8 @@ class FunctionalProfileUtil:
     # the latter method is running.
     ######################################### noqa
     VERSION = "0.0.1"
-    GIT_URL = ""
-    GIT_COMMIT_HASH = ""
+    GIT_URL = "https://github.com/Tianhao-Gu/FunctionalProfileUtil.git"
+    GIT_COMMIT_HASH = "9d6b351995f9fe5bd186fa3c59d5deef3d3ac1b1"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -41,32 +41,38 @@ class FunctionalProfileUtil:
         pass
 
 
-    def run_FunctionalProfileUtil(self, ctx, params):
+    def import_func_profile(self, ctx, params):
         """
-        This example function accepts any number of parameters and returns results in a KBaseReport
-        :param params: instance of mapping from String to unspecified object
-        :returns: instance of type "ReportResults" -> structure: parameter
-           "report_name" of String, parameter "report_ref" of String
+        :param params: instance of type "ImportFuncProfileParams" ->
+           structure: parameter "original_matrix_ref" of type "WSRef" (Ref to
+           a WS object @id ws), parameter "community_profile" of type
+           "CommProfile" -> structure: parameter "sample_set_ref" of type
+           "WSRef" (Ref to a WS object @id ws), parameter "profiles" of
+           mapping from type "profile_name" to type "ProfileTable" ->
+           structure: parameter "data_epistemology" of String, parameter
+           "epistemology_method" of String, parameter "description" of
+           String, parameter "profile_file_path" of String, parameter
+           "organism_profile" of type "OrgProfile" -> structure: parameter
+           "amplicon_set_ref" of type "WSRef" (Ref to a WS object @id ws),
+           parameter "profiles" of mapping from type "profile_name" to type
+           "ProfileTable" -> structure: parameter "data_epistemology" of
+           String, parameter "epistemology_method" of String, parameter
+           "description" of String, parameter "profile_file_path" of String
+        :returns: instance of type "ImportFuncProfileResults" -> structure:
+           parameter "func_profile_ref" of type "WSRef" (Ref to a WS object
+           @id ws)
         """
         # ctx is the context object
-        # return variables are: output
-        #BEGIN run_FunctionalProfileUtil
-        report = KBaseReport(self.callback_url)
-        report_info = report.create({'report': {'objects_created':[],
-                                                'text_message': params['parameter_1']},
-                                                'workspace_name': params['workspace_name']})
-        output = {
-            'report_name': report_info['name'],
-            'report_ref': report_info['ref'],
-        }
-        #END run_FunctionalProfileUtil
+        # return variables are: returnVal
+        #BEGIN import_func_profile
+        #END import_func_profile
 
         # At some point might do deeper type checking...
-        if not isinstance(output, dict):
-            raise ValueError('Method run_FunctionalProfileUtil return value ' +
-                             'output is not type dict as required.')
+        if not isinstance(returnVal, dict):
+            raise ValueError('Method import_func_profile return value ' +
+                             'returnVal is not type dict as required.')
         # return the results
-        return [output]
+        return [returnVal]
     def status(self, ctx):
         #BEGIN_STATUS
         returnVal = {'state': "OK",
