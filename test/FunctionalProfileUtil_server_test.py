@@ -47,9 +47,6 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})
         cls.wsId = ret[0]
 
-        print('fdasfdsa')
-        print(ret)
-
     @classmethod
     def tearDownClass(cls):
         if hasattr(cls, 'wsName'):

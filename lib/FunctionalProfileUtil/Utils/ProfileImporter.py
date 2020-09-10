@@ -37,7 +37,8 @@ class ProfileImporter:
             if param not in defined_param:
                 logging.warning("Unexpected parameter {} supplied".format(param))
 
-    def _gen_func_profile(self, original_matrix_ref, community_profile, organism_profile):
+    def _gen_func_profile(self, original_matrix_ref, community_profile, organism_profile,
+                          staging_file):
         func_profile_data = dict()
 
         func_profile_data['original_matrix_ref'] = original_matrix_ref
@@ -69,6 +70,7 @@ class ProfileImporter:
 
         workspace_id = params.get('workspace_id')
         func_profile_obj_name = params.get('func_profile_obj_name')
+        staging_file = params.get('staging_file', False)
 
         original_matrix_ref = params.get('original_matrix_ref')
         community_profile = params.get('community_profile')
@@ -76,7 +78,8 @@ class ProfileImporter:
 
         func_profile_data = self._gen_func_profile(original_matrix_ref,
                                                    community_profile,
-                                                   organism_profile)
+                                                   organism_profile,
+                                                   staging_file)
 
         logging.info('start saving FunctionalProfile object: {}'.format(func_profile_obj_name))
         info = self.dfu.save_objects({
