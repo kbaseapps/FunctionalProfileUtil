@@ -4,8 +4,11 @@ import logging
 import os
 import pandas as pd
 from xlrd.biffh import XLRDError
+import uuid
 
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.KBaseReportClient import KBaseReport
+
 from FunctionalProfileUtil.Utils.SampleServiceUtil import SampleServiceUtil
 
 DATA_EPISTEMOLOGY = ['measured', 'asserted', 'predicted']
@@ -72,6 +75,23 @@ class ProfileImporter:
         df = df.where((pd.notnull(df)), None)
 
         return df
+
+    def _gen_func_profile_report(self, func_profile_ref, workspace_id):
+        logging.info('start generating report')
+
+        objects_created = [{'ref': func_profile_ref, 'description': 'FunctionalProfile Object'}]
+
+        report_params = {'message': '',
+                         'objects_created': objects_created,
+                         'workspace_id': workspace_id,
+                         'report_object_name': 'import_func_profile_' + str(uuid.uuid4())}
+
+        kbase_report_client = KBaseReport(self.callback_url, token=self.token)
+        output = kbase_report_client.create_extended_report(report_params)
+
+        report_output = {'report_name': output['name'], 'report_ref': output['ref']}
+
+        return report_output
 
     def _get_ids_from_amplicon_set(self, amplicon_set_ref):
         logging.info('start retrieving OTU ids from amplicon set')
@@ -260,4 +280,8 @@ class ProfileImporter:
         func_profile_ref = self.import_func_profile(import_params)['func_profile_ref']
 
         returnVal = {'func_profile_ref': func_profile_ref}
+
+        report_output = self._gen_func_profile_report(func_profile_ref)
+        returnVal.update(report_output)
+
         return returnVal
