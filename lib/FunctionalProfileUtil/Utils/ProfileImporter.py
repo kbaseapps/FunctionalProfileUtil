@@ -82,7 +82,7 @@ class ProfileImporter:
 
         return amplicons.keys()
 
-    def _build_profile_table(self, profile_file_path, staging_file, data_ids):
+    def _build_profile_table(self, profile_file_path, data_ids, staging_file=False):
 
         if not profile_file_path:
             raise ValueError('Missing profile file path')
@@ -117,7 +117,7 @@ class ProfileImporter:
 
         return profile_data
 
-    def _build_profile_data(self, data_ids, profiles, staging_file):
+    def _build_profile_data(self, profiles, data_ids, staging_file=False):
         logging.info('start building profile data')
 
         gen_profile_data = dict()
@@ -136,7 +136,8 @@ class ProfileImporter:
             profile_file_path = profile_table.get('profile_file_path')
 
             logging.info('start building profile table for {}'.format(profile_name))
-            profile_data = self._build_profile_table(profile_file_path, staging_file, data_ids)
+            profile_data = self._build_profile_table(profile_file_path, data_ids,
+                                                     staging_file=staging_file)
 
             if profile_name in ['pathway', 'EC', 'KO']:
                 gen_profile_data[profile_name] = {'data_epistemology': data_epistemology,
@@ -155,21 +156,23 @@ class ProfileImporter:
         return gen_profile_data
 
     def _gen_func_profile(self, original_matrix_ref, community_profile, organism_profile,
-                          staging_file):
+                          staging_file=False):
         func_profile_data = dict()
 
+        if not original_matrix_ref:
+            raise ValueError('Missing original matrix object reference')
         func_profile_data['original_matrix_ref'] = original_matrix_ref
 
         if community_profile:
             logging.info('start building community profile')
             sample_set_ref = community_profile.get('sample_set_ref')
             if not sample_set_ref:
-                raise ValueError('Missing sample_set_ref in community profile')
+                raise ValueError('Missing sample_set_ref from community profile')
             data_ids = self.sampleservice_util.get_ids_from_samples(sample_set_ref)
 
-            comm_profile = self._build_profile_data(data_ids,
-                                                    community_profile.get('profiles'),
-                                                    staging_file)
+            comm_profile = self._build_profile_data(community_profile.get('profiles'),
+                                                    data_ids,
+                                                    staging_file=staging_file)
             comm_profile['sample_set_ref'] = sample_set_ref
 
             func_profile_data['community_profile'] = comm_profile
@@ -178,13 +181,13 @@ class ProfileImporter:
             logging.info('start building organism profile')
             amplicon_set_ref = organism_profile.get('amplicon_set_ref')
             if not amplicon_set_ref:
-                raise ValueError('Missing amplicon_set_ref in organism profile')
+                raise ValueError('Missing amplicon_set_ref from organism profile')
 
             data_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
 
-            org_profile = self._build_profile_data(data_ids,
-                                                   organism_profile.get('profiles'),
-                                                   staging_file)
+            org_profile = self._build_profile_data(organism_profile.get('profiles'),
+                                                   data_ids,
+                                                   staging_file=staging_file)
 
             org_profile['amplicon_set_ref'] = amplicon_set_ref
 
@@ -221,7 +224,7 @@ class ProfileImporter:
         func_profile_data = self._gen_func_profile(original_matrix_ref,
                                                    community_profile,
                                                    organism_profile,
-                                                   staging_file)
+                                                   staging_file=staging_file)
 
         logging.info('start saving FunctionalProfile object: {}'.format(func_profile_obj_name))
         info = self.dfu.save_objects({
@@ -237,4 +240,23 @@ class ProfileImporter:
 
         returnVal = {'func_profile_ref': func_profile_ref}
 
+        return returnVal
+
+    def narrative_import_func_profile(self, params):
+
+        workspace_id = params.get('workspace_id')
+        import_params = {'workspace_id': workspace_id,
+                         'func_profile_obj_name': params.get('func_profile_obj_name'),
+                         'original_matrix_ref': params.get('original_matrix_ref'),
+                         'staging_file': True}
+
+        community_profile = None
+        organism_profile = None
+
+        import_params['community_profile'] = community_profile
+        import_params['organism_profile'] = organism_profile
+
+        func_profile_ref = self.import_func_profile(import_params)['func_profile_ref']
+
+        returnVal = {'func_profile_ref': func_profile_ref}
         return returnVal

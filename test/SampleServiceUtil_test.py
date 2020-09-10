@@ -117,6 +117,7 @@ class SampleServiceTest(unittest.TestCase):
 
         self.assertTrue('SampleService' in ss_url)
 
+    @unittest.skip("Takes too long")
     def test_get_ids_from_samples(self):
         sampleservice_util = self.getSampleServiceUtil()
         sample_set_ref = self.loadSampleSet()

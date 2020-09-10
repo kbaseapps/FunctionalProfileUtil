@@ -342,6 +342,10 @@ class Application(object):
                              name='FunctionalProfileUtil.import_func_profile',
                              types=[dict])
         self.method_authentication['FunctionalProfileUtil.import_func_profile'] = 'required'  # noqa
+        self.rpc_service.add(impl_FunctionalProfileUtil.narrative_import_func_profile,
+                             name='FunctionalProfileUtil.narrative_import_func_profile',
+                             types=[dict])
+        self.method_authentication['FunctionalProfileUtil.narrative_import_func_profile'] = 'required'  # noqa
         self.rpc_service.add(impl_FunctionalProfileUtil.status,
                              name='FunctionalProfileUtil.status',
                              types=[dict])

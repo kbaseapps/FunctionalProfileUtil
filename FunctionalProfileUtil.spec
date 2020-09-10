@@ -52,20 +52,28 @@ module FunctionalProfileUtil {
       staging_file - profile_file_path provided in ProfileTable is a staging file path. default: False
     */
     typedef structure {
-        int workspace_id;
-        string func_profile_obj_name;
+      int workspace_id;
+      string func_profile_obj_name;
+      bool staging_file;
 
-        WSRef original_matrix_ref;
-        CommProfile community_profile;
-        OrgProfile organism_profile;
-
-        bool staging_file;
+      WSRef original_matrix_ref;
+      CommProfile community_profile;
+      OrgProfile organism_profile;
     } ImportFuncProfileParams;
 
     typedef structure {
-        WSRef func_profile_ref;
+      WSRef func_profile_ref;
     } ImportFuncProfileResults;
 
     funcdef import_func_profile(ImportFuncProfileParams params) returns (ImportFuncProfileResults returnVal) authentication required;
+
+
+    typedef structure {
+      string report_name;
+      WSRef report_ref;
+      WSRef func_profile_ref;
+    } ReportResults;
+
+    funcdef narrative_import_func_profile(mapping<string,UnspecifiedObject> params) returns (ReportResults returnVal) authentication required;
 
 };

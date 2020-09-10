@@ -5,6 +5,7 @@ import unittest
 from configparser import ConfigParser
 
 from FunctionalProfileUtil.FunctionalProfileUtilImpl import FunctionalProfileUtil
+from FunctionalProfileUtil.Utils.ProfileImporter import ProfileImporter
 from FunctionalProfileUtil.FunctionalProfileUtilServer import MethodContext
 from FunctionalProfileUtil.authclient import KBaseAuth as _KBaseAuth
 
@@ -47,6 +48,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         ret = cls.wsClient.create_workspace({'workspace': cls.wsName})
         cls.wsId = ret[0]
 
+        cls.profile_importer = ProfileImporter(cls.cfg)
+
     @classmethod
     def tearDownClass(cls):
         if hasattr(cls, 'wsName'):
@@ -57,6 +60,65 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Required keys"):
             self.serviceImpl.import_func_profile(self.ctx, {})
 
-    # def test_import_func_profile(self):
-    #     ret = self.serviceImpl.import_func_profile(self.ctx, {'workspace_name': self.wsName,
-    #                                                          'parameter_1': 'Hello World!'})
+    def test__build_profile_data(self):
+
+        data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
+                    'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
+        profile_file_path = os.path.join('data', 'func_table.tsv')
+
+        # invalide data_epistemology
+        with self.assertRaisesRegex(ValueError, "Data epistemology can only be one of"):
+            profiles = {'pathway': {'data_epistemology': 'a'}}
+            self.profile_importer._build_profile_data(profiles, data_ids)
+
+        # unmatched ids
+        with self.assertRaisesRegex(ValueError, "Profile file does not contain all data"):
+            profiles = {'pathway': {'data_epistemology': 'predicted',
+                                    'epistemology_method': 'FAPROTAX',
+                                    'profile_file_path': profile_file_path}}
+            self.profile_importer._build_profile_data(profiles, ['unmatched_id'])
+
+        # sccussfully build pathway profile
+        profiles = {'pathway': {'data_epistemology': 'predicted',
+                                'epistemology_method': 'FAPROTAX',
+                                'profile_file_path': profile_file_path}}
+        gen_profile_data = self.profile_importer._build_profile_data(profiles, data_ids)
+
+        self.assertCountEqual(gen_profile_data.keys(), ['pathway'])
+        self.assertEqual(gen_profile_data['pathway']['data_epistemology'], 'predicted')
+        self.assertEqual(gen_profile_data['pathway']['epistemology_method'], 'FAPROTAX')
+        self.assertIsNone(gen_profile_data['pathway']['description'])
+        self.assertCountEqual(data_ids,
+                              gen_profile_data['pathway']['profile_data']['col_ids'])
+
+        # sccussfully build custom profile
+        profiles = {'function': {'data_epistemology': 'predicted',
+                                 'epistemology_method': 'FAPROTAX',
+                                 'profile_file_path': profile_file_path}}
+        gen_profile_data = self.profile_importer._build_profile_data(profiles, data_ids)
+
+        self.assertCountEqual(gen_profile_data.keys(), ['custom_profiles'])
+
+        self.assertCountEqual(gen_profile_data.keys(), ['custom_profiles'])
+        self.assertCountEqual(gen_profile_data['custom_profiles'].keys(), ['function'])
+        self.assertEqual(gen_profile_data['custom_profiles']['function']['data_epistemology'],
+                         'predicted')
+        self.assertEqual(gen_profile_data['custom_profiles']['function']['epistemology_method'],
+                         'FAPROTAX')
+        self.assertIsNone(gen_profile_data['custom_profiles']['function']['description'])
+        self.assertCountEqual(
+                        data_ids,
+                        gen_profile_data['custom_profiles']['function']['profile_data']['col_ids'])
+
+        # sccussfully detect profile is transposed
+        profiles = {'pathway': {'data_epistemology': 'predicted',
+                                'epistemology_method': 'FAPROTAX',
+                                'profile_file_path': os.path.join('data', 'func_table_trans.tsv')}}
+        gen_profile_data = self.profile_importer._build_profile_data(profiles, data_ids)
+
+        self.assertCountEqual(gen_profile_data.keys(), ['pathway'])
+        self.assertEqual(gen_profile_data['pathway']['data_epistemology'], 'predicted')
+        self.assertEqual(gen_profile_data['pathway']['epistemology_method'], 'FAPROTAX')
+        self.assertIsNone(gen_profile_data['pathway']['description'])
+        self.assertCountEqual(data_ids,
+                              gen_profile_data['pathway']['profile_data']['col_ids'])
