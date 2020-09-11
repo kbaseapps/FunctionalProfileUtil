@@ -30,7 +30,7 @@ module KBaseFunctionalProfile {
     typedef structure {
       list<string> row_ids;
       list<string> col_ids;
-      UnspecifiedObject values;
+      list<list<>> values;
     } Matrix2D;
 
     /*
