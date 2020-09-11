@@ -283,22 +283,22 @@ class ProfileImporter:
         input_organism_profile = params.get('community_profile')
 
         for profile in input_community_profile:
-            profile_name = profile.get('profile_name')
+            profile_name = profile.get('community_profile_name')
 
             community_profile['profiles'][profile_name] = {
-                            'data_epistemology': profile.get('data_epistemology'),
-                            'epistemology_method': profile.get('epistemology_method'),
-                            'description': profile.get('description'),
-                            'profile_file_path': profile.get('profile_file_path')}
+                            'data_epistemology': profile.get('community_data_epistemology'),
+                            'epistemology_method': profile.get('community_epistemology_method'),
+                            'description': profile.get('community_description'),
+                            'profile_file_path': profile.get('community_profile_file_path')}
 
         for profile in input_organism_profile:
-            profile_name = profile.get('profile_name')
+            profile_name = profile.get('organism_profile_name')
 
             organism_profile['profiles'][profile_name] = {
-                            'data_epistemology': profile.get('data_epistemology'),
-                            'epistemology_method': profile.get('epistemology_method'),
-                            'description': profile.get('description'),
-                            'profile_file_path': profile.get('profile_file_path')}
+                            'data_epistemology': profile.get('organism_data_epistemology'),
+                            'epistemology_method': profile.get('organism_epistemology_method'),
+                            'description': profile.get('organism_description'),
+                            'profile_file_path': profile.get('organism_profile_file_path')}
 
         import_params['community_profile'] = community_profile
         import_params['organism_profile'] = organism_profile

@@ -44,7 +44,7 @@ parameters :
         long-hint  : |
             AmpliconSet object associated with organism profile
 
-    profile_name :
+    community_profile_name :
         ui-name : |
             Profile Name
         short-hint : |
@@ -52,7 +52,7 @@ parameters :
         long-hint  : |
             Profile Name
 
-    data_epistemology:
+    community_data_epistemology:
         ui-name: |
             Profile Epistemology
         short-hint : |
@@ -60,7 +60,7 @@ parameters :
         long-hint  : |
             how was data acquired. one of: measured, asserted, predicted
 
-    epistemology_method:
+    community_epistemology_method:
         ui-name: |
             Epistemology Method
         short-hint : |
@@ -68,7 +68,7 @@ parameters :
         long-hint  : |
             method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
 
-    profile_file_path:
+    community_profile_file_path:
         ui-name : |
             Profile File Path
         short-hint : |
@@ -76,7 +76,47 @@ parameters :
         long-hint  : |
             Recognized extensions for the input file is .xlsx or .csv
 
-    description:
+    community_description:
+        ui-name: |
+            Description
+        short-hint : |
+            Description
+        long-hint  : |
+            Description
+
+    organism_profile_name :
+        ui-name : |
+            Profile Name
+        short-hint : |
+            Profile Name
+        long-hint  : |
+            Profile Name
+
+    organism_data_epistemology:
+        ui-name: |
+            Profile Epistemology
+        short-hint : |
+            how was data acquired. one of: measured, asserted, predicted
+        long-hint  : |
+            how was data acquired. one of: measured, asserted, predicted
+
+    organism_epistemology_method:
+        ui-name: |
+            Epistemology Method
+        short-hint : |
+            method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
+        long-hint  : |
+            method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
+
+    organism_profile_file_path:
+        ui-name : |
+            Profile File Path
+        short-hint : |
+            Recognized extensions for the input file is .xlsx or .csv
+        long-hint  : |
+            Recognized extensions for the input file is .xlsx or .csv
+
+    organism_description:
         ui-name: |
             Description
         short-hint : |
@@ -99,7 +139,6 @@ parameter-groups :
     organism_profile:
         ui-name : Organism Profile
         short-hint :  Organism Profile
-
 
 description : |
     <p> Import a CSV, Excel or TSV file from your staging area into your Narrative as an FunctionalProfile data object </p>
