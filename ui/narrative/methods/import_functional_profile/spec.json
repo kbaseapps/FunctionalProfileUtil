@@ -1,0 +1,210 @@
+{
+  "ver" : "",
+  "authors" : ["tgu2"],
+  "contact" : "http://kbase.us/contact-us/",
+  "visible" : true,
+  "categories" : ["active","util"],
+  "widgets": {
+    "input": "kbaseNarrativeMethodInput",
+    "output" : "no-display"
+  },
+  "parameters" : [
+    {
+      "id" : "original_matrix_ref",
+      "optional" : false,
+      "advanced" : false,
+      "allow_multiple" : false,
+      "default_values" : [ "" ],
+      "field_type" : "text",
+      "text_options" : {
+        "valid_ws_types" : ["KBaseMatrices"]
+      }
+    },
+    {
+      "id" : "sample_set_ref",
+      "optional" : false,
+      "advanced" : false,
+      "allow_multiple" : false,
+      "default_values" : [ "" ],
+      "field_type" : "text",
+      "text_options" : {
+        "valid_ws_types" : ["KBaseSets.SampleSet"]
+      }
+    },
+    {
+      "id" : "amplicon_set_ref",
+      "optional" : false,
+      "advanced" : false,
+      "allow_multiple" : false,
+      "default_values" : [ "" ],
+      "field_type" : "text",
+      "text_options" : {
+        "valid_ws_types" : ["KBaseExperiments.AmpliconSet"]
+      }
+    },
+    {
+      "id" : "profile_name",
+      "optional" : false,
+      "advanced" : false,
+      "allow_multiple" : false,
+      "default_values" : [ "" ],
+      "field_type" : "text"
+    },
+    {
+      "id" : "data_epistemology",
+      "optional" : false,
+      "advanced" : false,
+      "allow_multiple" : false,
+      "default_values" : ["measured"],
+      "field_type" : "dropdown",
+      "dropdown_options":
+      {
+        "options":
+        [
+          {
+              "display": "Measured",
+              "value": "measured"
+          },
+          {
+              "display": "Predicted",
+              "value": "predicted"
+          },
+          {
+              "display": "Asserted",
+              "value": "asserted"
+          }
+        ]
+      }
+    },
+    {
+      "id" : "epistemology_method",
+      "optional" : true,
+      "advanced" : false,
+      "allow_multiple" : false,
+      "default_values" : [ "" ],
+      "field_type" : "text"
+    },
+    {
+      "id" : "profile_file_path",
+      "optional" : false,
+      "advanced" : false,
+      "allow_multiple" : true,
+      "default_values" : [ "" ],
+      "field_type" : "dynamic_dropdown",
+      "text_options" : {}
+    },
+    {
+      "id" : "description",
+      "optional" : true,
+      "advanced" : false,
+      "allow_multiple" : false,
+      "default_values" : [ "" ],
+      "field_type" : "text"
+    },
+    {
+      "id" : "func_profile_obj_name",
+      "optional" : false,
+      "advanced" : false,
+      "allow_multiple" : false,
+      "default_values" : [ "" ],
+      "field_type" : "text",
+      "text_options" : {
+          "valid_ws_types" : ["KBaseFunctionalProfile.FunctionalProfile"],
+          "is_output_name" : true
+        }
+    }
+  ],
+  "parameter-groups": [
+    {
+      "id": "community_profile",
+      "parameters": [
+        "profile_name",
+        "data_epistemology",
+        "epistemology_method",
+        "profile_file_path",
+        "description"
+      ],
+      "optional": true,
+      "allow_multiple": true,
+      "with_border": false,
+      "advanced" : false
+    },
+    {
+      "id": "organism_profile",
+      "parameters": [
+        "profile_name",
+        "data_epistemology",
+        "epistemology_method",
+        "profile_file_path",
+        "description"
+      ],
+      "optional": true,
+      "allow_multiple": true,
+      "with_border": false,
+      "advanced" : false
+    }
+  ],
+  "behavior" : {
+    "service-mapping" : {
+      "url" : "",
+      "name" : "FunctionalProfileUtil",
+      "method" : "narrative_import_func_profile",
+      "input_mapping" : [
+        {
+          "narrative_system_variable": "workspace",
+          "target_property": "workspace_name"
+        },
+        {
+          "narrative_system_variable": "workspace_id",
+          "target_property": "workspace_id"
+        },
+        {
+          "input_parameter" : "original_matrix_ref",
+          "target_property" : "original_matrix_ref",
+          "target_type_transform": "resolved-ref"
+        },
+        {
+          "input_parameter" : "sample_set_ref",
+          "target_property" : "sample_set_ref",
+          "target_type_transform": "resolved-ref"
+        },
+        {
+          "input_parameter" : "amplicon_set_ref",
+          "target_property" : "amplicon_set_ref",
+          "target_type_transform": "resolved-ref"
+        },
+        {
+          "input_parameter" : "organism_profile",
+          "target_property" : "organism_profile"
+        },
+        {
+          "input_parameter" : "community_profile",
+          "target_property" : "community_profile"
+        },
+        {
+          "input_parameter" : "func_profile_obj_name",
+          "target_property" : "func_profile_obj_name"
+        }
+      ],
+      "output_mapping" : [
+        {
+          "narrative_system_variable": "workspace",
+          "target_property": "wsName"
+        },
+        {
+            "service_method_output_path": [0, "report_name"],
+            "target_property": "report_name"
+        },
+        {
+            "service_method_output_path": [0, "report_ref"],
+            "target_property": "report_ref"
+        },
+        {
+            "constant_value": "16",
+            "target_property": "report_window_line_height"
+        }
+      ]
+    }
+  },
+  "job_id_output_field": "docker"
+}

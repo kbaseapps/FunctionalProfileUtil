@@ -1,7 +1,23 @@
 [ {
+  "module_name" : "DataFileUtil",
+  "type" : "sdk",
+  "version_tag" : "release"
+}, {
+  "module_name" : "FakeObjectsForTests",
+  "type" : "sdk",
+  "version_tag" : "dev"
+}, {
   "module_name" : "KBaseReport",
   "type" : "sdk",
   "version_tag" : "release"
+}, {
+  "module_name" : "sample_uploader",
+  "type" : "sdk",
+  "version_tag" : "dev"
+}, {
+  "module_name" : "SampleService",
+  "type" : "sdk",
+  "version_tag" : "dev"
 }, {
   "module_name" : "Workspace",
   "type" : "core",

@@ -8,7 +8,13 @@ MAINTAINER KBase Developer
 
 # RUN apt-get update
 
+RUN pip install --upgrade pip \
+    && python --version
 
+RUN pip install numpy==1.19.1 \
+    && pip install pandas==1.1.1 \
+    && pip install mock==4.0.2 \
+    && pip install xlrd==1.2.0
 # -----------------------------------------
 
 COPY ./ /kb/module

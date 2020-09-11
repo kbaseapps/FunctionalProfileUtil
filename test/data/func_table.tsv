@@ -1,0 +1,10 @@
+group	PB-Low-5	PB-High-5	PB-Low-6	PB-High-6	PB-Low-7	PB-High-7	PB-Low-8	PB-High-8
+methanotrophy	0	0	0	0	0.0003728801	0.0783267861	0.0362904404	0.0008115648
+acetoclastic_methanogenesis	0	0	0	0	0	0	0	0
+methanogenesis_by_disproportionation_of_methyl_groups	0	0	0	0	0	0	0	0
+methanogenesis_using_formate	0	0	0	0	0	0	0	0
+methanogenesis_by_CO2_reduction_with_H2	0	0	0	0	0	0	0	0
+methanogenesis_by_reduction_of_methyl_compounds_with_H2	0	0	0	0	0	0	0	0
+hydrogenotrophic_methanogenesis	0	0	0	0	0	0	0	0
+methanogenesis	0	0	0	0	0	0	0	0
+methanol_oxidation	0.0002719423	5.52315E-05	7.52984E-05	0.0001038767	0	0	0.0001166895	0.0189196044
