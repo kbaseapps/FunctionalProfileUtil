@@ -14,6 +14,7 @@ from FunctionalProfileUtil.authclient import KBaseAuth as _KBaseAuth
 
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.FakeObjectsForTestsClient import FakeObjectsForTests
 
 DATA_IDS = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
             'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
@@ -56,12 +57,27 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         cls.wsId = ret[0]
 
         cls.profile_importer = ProfileImporter(cls.cfg)
+        cls.dfu = DataFileUtil(cls.callback_url)
 
     @classmethod
     def tearDownClass(cls):
         if hasattr(cls, 'wsName'):
             cls.wsClient.delete_workspace({'workspace': cls.wsName})
             print('Test workspace was deleted')
+
+    def createAnObject(self):
+        if hasattr(self.__class__, 'fake_object_ref'):
+            return self.__class__.fake_object_ref
+
+        obj_name = 'test_obj.1'
+        foft = FakeObjectsForTests(self.callback_url)
+        info = foft.create_any_objects({'ws_name': self.wsName, 'obj_names': [obj_name]})[0]
+
+        fake_object_ref = "%s/%s/%s" % (info[6], info[0], info[4])
+
+        self.__class__.fake_object_ref = fake_object_ref
+        print('Loaded Fake Object: ' + fake_object_ref)
+        return fake_object_ref
 
     def test__build_profile_data(self):
 
@@ -341,18 +357,19 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
         profile_file_path = os.path.join('data', 'func_table.tsv')
+        fake_object_ref = self.createAnObject()
 
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
-                  'original_matrix_ref': '1/1/1',
-                  'community_profile': {'sample_set_ref': '1/1/1',
+                  'original_matrix_ref': fake_object_ref,
+                  'community_profile': {'sample_set_ref': fake_object_ref,
                                         'profiles': {'pathway': {'data_epistemology': 'predicted',
                                                                  'epistemology_method': 'FAPROTAX',
                                                                  'profile_file_path': profile_file_path},
                                                      'func_table': {'data_epistemology': 'predicted',
                                                                     'epistemology_method': 'FAPROTAX',
                                                                     'profile_file_path': profile_file_path}}},
-                  'organism_profile': {'amplicon_set_ref': '1/1/1',
+                  'organism_profile': {'amplicon_set_ref': fake_object_ref,
                                        'profiles': {'EC': {'data_epistemology': 'predicted',
                                                            'epistemology_method': 'FAPROTAX',
                                                            'profile_file_path': profile_file_path},
@@ -364,9 +381,6 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         func_profile_data = self.dfu.get_objects(
                                             {'object_refs': [func_profile_ref]})['data'][0]['data']
 
-        # func_profile_data_str = 'null'.join(func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
-        # func_profile_data = json.loads(func_profile_data_str)
-
         self.assertCountEqual(func_profile_data.keys(), ['original_matrix_ref',
                                                          'community_profile',
                                                          'organism_profile'])
@@ -374,7 +388,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         community_profile = func_profile_data['community_profile']
 
         self.assertCountEqual(organism_profile.keys(), ['EC', 'amplicon_set_ref', 'custom_profiles'])
-        self.assertEqual(organism_profile['amplicon_set_ref'], '1/1/1')
+        self.assertEqual(organism_profile['amplicon_set_ref'], fake_object_ref)
         EC_profile = organism_profile['EC']
         custom_profiles = organism_profile['custom_profiles']
 
@@ -395,7 +409,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                               groups_profile['profile_data']['col_ids'])
 
         self.assertCountEqual(community_profile.keys(), ['pathway', 'sample_set_ref', 'custom_profiles'])
-        self.assertEqual(community_profile['sample_set_ref'], '1/1/1')
+        self.assertEqual(community_profile['sample_set_ref'], fake_object_ref)
         pathway_profile = community_profile['pathway']
         custom_profiles = community_profile['custom_profiles']
 
