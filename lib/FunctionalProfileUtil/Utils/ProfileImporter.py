@@ -274,8 +274,31 @@ class ProfileImporter:
                          'original_matrix_ref': params.get('original_matrix_ref'),
                          'staging_file': True}
 
-        community_profile = None
-        organism_profile = None
+        community_profile = {'sample_set_ref': params.get('sample_set_ref'),
+                             'profiles': dict()}
+        organism_profile = {'amplicon_set_ref': params.get('amplicon_set_ref'),
+                            'profiles': dict()}
+
+        input_community_profile = params.get('organism_profile')
+        input_organism_profile = params.get('community_profile')
+
+        for profile in input_community_profile:
+            profile_name = profile.get('profile_name')
+
+            community_profile['profiles'][profile_name] = {
+                            'data_epistemology': profile.get('data_epistemology'),
+                            'epistemology_method': profile.get('epistemology_method'),
+                            'description': profile.get('description'),
+                            'profile_file_path': profile.get('profile_file_path')}
+
+        for profile in input_organism_profile:
+            profile_name = profile.get('profile_name')
+
+            organism_profile['profiles'][profile_name] = {
+                            'data_epistemology': profile.get('data_epistemology'),
+                            'epistemology_method': profile.get('epistemology_method'),
+                            'description': profile.get('description'),
+                            'profile_file_path': profile.get('profile_file_path')}
 
         import_params['community_profile'] = community_profile
         import_params['organism_profile'] = organism_profile
@@ -284,7 +307,7 @@ class ProfileImporter:
 
         returnVal = {'func_profile_ref': func_profile_ref}
 
-        report_output = self._gen_func_profile_report(func_profile_ref)
+        report_output = self._gen_func_profile_report(func_profile_ref, workspace_id)
         returnVal.update(report_output)
 
         return returnVal

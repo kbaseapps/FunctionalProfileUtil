@@ -1,0 +1,105 @@
+name     : Import Functional Profile
+subtitle : Import a CSV, Excel or TSV file from your staging area into your Narrative as an FunctionalProfile data object
+tooltip  : Import a CSV, Excel or TSV file from your staging area into your Narrative as an FunctionalProfile data object
+
+icon: profile_72pt-aqua.png
+
+screenshots :
+    []
+
+suggestions :
+    apps:
+        related :
+            []
+        next :
+            []
+    methods:
+        related :
+            []
+        next :
+            []
+
+parameters :
+    original_matrix_ref :
+        ui-name: |
+            Matrix Object
+        short-hint : |
+            One of KBaseMatrices object
+        long-hint  : |
+            One of KBaseMatrices object
+
+    sample_set_ref :
+        ui-name : |
+            Sample Set Object
+        short-hint : |
+            SampleSet object associated with community profile
+        long-hint  : |
+            SampleSet object associated with community profile
+
+    amplicon_set_ref :
+        ui-name : |
+            Amplicon Set Object
+        short-hint : |
+            AmpliconSet object associated with organism profile
+        long-hint  : |
+            AmpliconSet object associated with organism profile
+
+    profile_name :
+        ui-name : |
+            Profile Name
+        short-hint : |
+            Profile Name
+        long-hint  : |
+            Profile Name
+
+    data_epistemology:
+        ui-name: |
+            Profile Epistemology
+        short-hint : |
+            how was data acquired. one of: measured, asserted, predicted
+        long-hint  : |
+            how was data acquired. one of: measured, asserted, predicted
+
+    epistemology_method:
+        ui-name: |
+            Epistemology Method
+        short-hint : |
+            method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
+        long-hint  : |
+            method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
+
+    profile_file_path:
+        ui-name : |
+            Profile File Path
+        short-hint : |
+            Recognized extensions for the input file is .xlsx or .csv
+        long-hint  : |
+            Recognized extensions for the input file is .xlsx or .csv
+
+    description:
+        ui-name: |
+            Description
+        short-hint : |
+            Description
+        long-hint  : |
+            Description
+
+    func_profile_obj_name:
+        ui-name: |
+            Functional Profile Object Name
+        short-hint : |
+            Output KBaseExperiments.FunctionalProfile object name
+        long-hint  : |
+            Output KBaseExperiments.FunctionalProfile object name
+
+parameter-groups :
+    community_profile:
+        ui-name : Community Profile
+        short-hint :  Community Profile
+    organism_profile:
+        ui-name : Organism Profile
+        short-hint :  Organism Profile
+
+
+description : |
+    <p> Import a CSV, Excel or TSV file from your staging area into your Narrative as an FunctionalProfile data object </p>
