@@ -279,8 +279,8 @@ class ProfileImporter:
         organism_profile = {'amplicon_set_ref': params.get('amplicon_set_ref'),
                             'profiles': dict()}
 
-        input_community_profile = params.get('organism_profile')
-        input_organism_profile = params.get('community_profile')
+        input_community_profile = params.get('community_profile')
+        input_organism_profile = params.get('organism_profile')
 
         for profile in input_community_profile:
             profile_name = profile.get('community_profile_name')
