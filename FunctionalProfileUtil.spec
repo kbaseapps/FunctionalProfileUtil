@@ -67,6 +67,20 @@ module FunctionalProfileUtil {
 
     funcdef import_func_profile(ImportFuncProfileParams params) returns (ImportFuncProfileResults returnVal) authentication required;
 
+    /*
+      staging_file - profile_file_path provided in ProfileTable is a staging file path. default: False
+      upsert - upsert profile. default: False
+    */
+    typedef structure {
+      int workspace_id;
+      WSRef functional_profile_ref;
+      bool staging_file;
+      bool upsert;
+      mapping<profile_name, ProfileTable> community_profile;
+      mapping<profile_name, ProfileTable> organism_profile;
+    } InsertFuncProfileParams;
+
+    funcdef insert_func_profile(InsertFuncProfileParams params) returns (ImportFuncProfileResults returnVal) authentication required;
 
     typedef structure {
       string report_name;
@@ -75,5 +89,7 @@ module FunctionalProfileUtil {
     } ReportResults;
 
     funcdef narrative_import_func_profile(mapping<string,UnspecifiedObject> params) returns (ReportResults returnVal) authentication required;
+
+    funcdef narrative_insert_func_profile(mapping<string,UnspecifiedObject> params) returns (ReportResults returnVal) authentication required;
 
 };

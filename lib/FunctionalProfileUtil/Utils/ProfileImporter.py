@@ -79,6 +79,19 @@ class ProfileImporter:
 
         return df
 
+    def _save_func_profile(self, workspace_id, func_profile_data, func_profile_obj_name):
+        logging.info('start saving FunctionalProfile object: {}'.format(func_profile_obj_name))
+        info = self.dfu.save_objects({
+            "id": workspace_id,
+            "objects": [{
+                "type": "KBaseFunctionalProfile.FunctionalProfile",
+                "data": func_profile_data,
+                "name": func_profile_obj_name
+            }]
+        })[0]
+
+        return "%s/%s/%s" % (info[6], info[0], info[4])
+
     def _gen_func_profile_report(self, func_profile_ref, workspace_id):
         logging.info('start generating report')
 
@@ -179,6 +192,17 @@ class ProfileImporter:
 
         return gen_profile_data
 
+    def _update_func_profile(self, func_profile_ref, community_profile, organism_profile,
+                             staging_file=False, upsert=False):
+
+        func_profile_obj = self.dfu.get_objects({'object_refs': [func_profile_ref]})['data'][0]
+        func_profile_info = func_profile_obj['info']
+        func_profile_data = func_profile_obj['data']
+
+        func_profile_obj_name = func_profile_info[1]
+
+        return func_profile_data, func_profile_obj_name
+
     def _gen_func_profile(self, original_matrix_ref, community_profile, organism_profile,
                           staging_file=False):
         func_profile_data = dict()
@@ -250,17 +274,39 @@ class ProfileImporter:
                                                    organism_profile,
                                                    staging_file=staging_file)
 
-        logging.info('start saving FunctionalProfile object: {}'.format(func_profile_obj_name))
-        info = self.dfu.save_objects({
-            "id": workspace_id,
-            "objects": [{
-                "type": "KBaseFunctionalProfile.FunctionalProfile",
-                "data": func_profile_data,
-                "name": func_profile_obj_name
-            }]
-        })[0]
+        func_profile_ref = self._save_func_profile(workspace_id,
+                                                   func_profile_data,
+                                                   func_profile_obj_name)
 
-        func_profile_ref = "%s/%s/%s" % (info[6], info[0], info[4])
+        returnVal = {'func_profile_ref': func_profile_ref}
+
+        return returnVal
+
+    def insert_func_profile(self, params):
+
+        logging.info("start updating FunctionalProfile with params:{}".format(params))
+
+        self._validate_params(params, ('workspace_id',
+                                       'functional_profile_ref'))
+
+        workspace_id = params.get('workspace_id')
+        functional_profile_ref = params.get('functional_profile_ref')
+        staging_file = params.get('staging_file', False)
+        upsert = params.get('staging_file', False)
+
+        community_profile = params.get('community_profile')
+        organism_profile = params.get('organism_profile')
+
+        (func_profile_data,
+         func_profile_obj_name) = self._update_func_profile(functional_profile_ref,
+                                                            community_profile,
+                                                            organism_profile,
+                                                            staging_file=staging_file,
+                                                            upsert=upsert)
+
+        func_profile_ref = self._save_func_profile(workspace_id,
+                                                   func_profile_data,
+                                                   func_profile_obj_name)
 
         returnVal = {'func_profile_ref': func_profile_ref}
 
