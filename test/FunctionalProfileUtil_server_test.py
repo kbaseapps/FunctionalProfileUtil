@@ -171,7 +171,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
     @patch.object(SampleServiceUtil, "get_ids_from_samples", return_value=DATA_IDS)
     @patch.object(ProfileImporter, "_get_ids_from_amplicon_set", return_value=DATA_IDS)
     @patch.object(DataFileUtil, "get_objects", side_effect=mock_get_objects)
-    def test___update_func_profile(self, get_ids_from_samples, _get_ids_from_amplicon_set, get_objects):
+    def test___update_func_profile(self, get_ids_from_samples, _get_ids_from_amplicon_set,
+                                   get_objects):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
@@ -228,8 +229,9 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
         self.assertCountEqual(updated_data['community_profile']['custom_profiles'].keys(),
                               ['group'])
-        self.assertCountEqual(data_ids,
-                              updated_data['community_profile']['custom_profiles']['group']['profile_data']['col_ids'])
+        self.assertCountEqual(
+            data_ids,
+            updated_data['community_profile']['custom_profiles']['group']['profile_data']['col_ids'])
 
         # upsert community profile
         func_profile_data = {'original_matrix_ref': '1/1/1',
@@ -246,9 +248,11 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         expected_keys = ['original_matrix_ref', 'community_profile']
         self.assertCountEqual(expected_keys, updated_data.keys())
         self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
-        self.assertEqual('measured', updated_data['community_profile']['pathway']['data_epistemology'])
-        self.assertCountEqual(data_ids,
-                              updated_data['community_profile']['pathway']['profile_data']['col_ids'])
+        self.assertEqual('measured',
+                         updated_data['community_profile']['pathway']['data_epistemology'])
+        self.assertCountEqual(
+                        data_ids,
+                        updated_data['community_profile']['pathway']['profile_data']['col_ids'])
 
         # create community profile
         func_profile_data = {'original_matrix_ref': '1/1/1'}
@@ -263,9 +267,11 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         expected_keys = ['original_matrix_ref', 'community_profile']
         self.assertCountEqual(expected_keys, updated_data.keys())
         self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
-        self.assertEqual('measured', updated_data['community_profile']['pathway']['data_epistemology'])
-        self.assertCountEqual(data_ids,
-                              updated_data['community_profile']['pathway']['profile_data']['col_ids'])
+        self.assertEqual('measured',
+                         updated_data['community_profile']['pathway']['data_epistemology'])
+        self.assertCountEqual(
+                        data_ids,
+                        updated_data['community_profile']['pathway']['profile_data']['col_ids'])
 
         # create custom community profile
         func_profile_data = {'original_matrix_ref': '1/1/1'}
@@ -280,9 +286,110 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         expected_keys = ['original_matrix_ref', 'community_profile']
         self.assertCountEqual(expected_keys, updated_data.keys())
         self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
-        self.assertEqual('measured', updated_data['community_profile']['custom_profiles']['group']['data_epistemology'])
+        self.assertEqual(
+            'measured',
+            updated_data['community_profile']['custom_profiles']['group']['data_epistemology'])
+        self.assertCountEqual(
+            data_ids,
+            updated_data['community_profile']['custom_profiles']['group']['profile_data']['col_ids'])
+
+    @patch.object(SampleServiceUtil, "get_ids_from_samples", return_value=DATA_IDS)
+    @patch.object(ProfileImporter, "_get_ids_from_amplicon_set", return_value=DATA_IDS)
+    def test_insert_func_profile(self, get_ids_from_samples, _get_ids_from_amplicon_set):
+
+        data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
+                    'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
+        profile_file_path = os.path.join('data', 'func_table.tsv')
+        fake_object_ref = self.createAnObject()
+
+        # create test FunctionalProfile to be used
+        params = {'workspace_id': self.wsId,
+                  'func_profile_obj_name': 'test_func_profile',
+                  'original_matrix_ref': fake_object_ref,
+                  'community_profile': {'sample_set_ref': fake_object_ref,
+                                        'profiles': {
+                                            'pathway': {'data_epistemology': 'predicted',
+                                                        'epistemology_method': 'FAPROTAX',
+                                                        'profile_file_path': profile_file_path},
+                                            'func_table': {'data_epistemology': 'predicted',
+                                                           'epistemology_method': 'FAPROTAX',
+                                                           'profile_file_path': profile_file_path}}},
+                  'organism_profile': {'amplicon_set_ref': fake_object_ref,
+                                       'profiles': {
+                                            'EC': {'data_epistemology': 'predicted',
+                                                   'epistemology_method': 'FAPROTAX',
+                                                   'profile_file_path': profile_file_path},
+                                            'groups': {'data_epistemology': 'predicted',
+                                                       'epistemology_method': 'FAPROTAX',
+                                                       'profile_file_path': profile_file_path}}}}
+        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                params)[0]['func_profile_ref']
+
+        community_profile = {'ph_value': {'data_epistemology': 'measured',
+                                          'epistemology_method': 'FAPROTAX2',
+                                          'profile_file_path': profile_file_path}}
+
+        organism_profile = {'KO': {'data_epistemology': 'predicted',
+                                   'profile_file_path': profile_file_path}}
+
+        params = {'workspace_id': self.wsId,
+                  'functional_profile_ref': func_profile_ref,
+                  'community_profile': community_profile,
+                  'organism_profile': organism_profile}
+        func_profile_ref = self.serviceImpl.insert_func_profile(self.ctx,
+                                                                params)[0]['func_profile_ref']
+
+        func_profile_data = self.dfu.get_objects(
+                                            {'object_refs': [func_profile_ref]})['data'][0]['data']
+
+        self.assertCountEqual(func_profile_data.keys(), ['original_matrix_ref',
+                                                         'community_profile',
+                                                         'organism_profile'])
+        organism_profile = func_profile_data['organism_profile']
+        community_profile = func_profile_data['community_profile']
+
+        self.assertCountEqual(organism_profile.keys(), ['EC', 'KO', 'amplicon_set_ref',
+                                                        'custom_profiles'])
+        self.assertEqual(organism_profile['amplicon_set_ref'], fake_object_ref)
+        KO_profile = organism_profile['KO']
+        custom_profiles = organism_profile['custom_profiles']
+
+        self.assertCountEqual(KO_profile.keys(), ['data_epistemology', 'epistemology_method',
+                                                  'description', 'profile_data'])
+        self.assertEqual(KO_profile['data_epistemology'], 'predicted')
+        self.assertIsNone(KO_profile['epistemology_method'])
+        self.assertIsNone(KO_profile['description'])
         self.assertCountEqual(data_ids,
-                              updated_data['community_profile']['custom_profiles']['group']['profile_data']['col_ids'])
+                              KO_profile['profile_data']['col_ids'])
+
+        self.assertCountEqual(community_profile.keys(), ['pathway', 'sample_set_ref',
+                                                         'custom_profiles'])
+        self.assertEqual(community_profile['sample_set_ref'], fake_object_ref)
+        pathway_profile = community_profile['pathway']
+        custom_profiles = community_profile['custom_profiles']
+
+        self.assertCountEqual(pathway_profile.keys(), ['data_epistemology', 'epistemology_method',
+                                                       'description', 'profile_data'])
+        self.assertEqual(pathway_profile['data_epistemology'], 'predicted')
+        self.assertEqual(pathway_profile['epistemology_method'], 'FAPROTAX')
+        self.assertIsNone(pathway_profile['description'])
+        self.assertCountEqual(data_ids,
+                              pathway_profile['profile_data']['col_ids'])
+
+        self.assertCountEqual(custom_profiles.keys(), ['func_table', 'ph_value'])
+        func_table_profile = custom_profiles['func_table']
+        self.assertEqual(func_table_profile['data_epistemology'], 'predicted')
+        self.assertEqual(func_table_profile['epistemology_method'], 'FAPROTAX')
+        self.assertIsNone(func_table_profile['description'])
+        self.assertCountEqual(data_ids,
+                              func_table_profile['profile_data']['col_ids'])
+
+        ph_value_profile = custom_profiles['ph_value']
+        self.assertEqual(ph_value_profile['data_epistemology'], 'measured')
+        self.assertEqual(ph_value_profile['epistemology_method'], 'FAPROTAX2')
+        self.assertIsNone(ph_value_profile['description'])
+        self.assertCountEqual(data_ids,
+                              ph_value_profile['profile_data']['col_ids'])
 
     def mock_save_objects(params):
         print('Mocking DataFileUtilClient.save_objects')
@@ -294,7 +401,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
     @patch.object(SampleServiceUtil, "get_ids_from_samples", return_value=DATA_IDS)
     @patch.object(ProfileImporter, "_get_ids_from_amplicon_set", return_value=DATA_IDS)
     @patch.object(DataFileUtil, "save_objects", side_effect=mock_save_objects)
-    def test_import_func_profile(self, get_ids_from_samples, _get_ids_from_amplicon_set, save_objects):
+    def test_import_func_profile(self, get_ids_from_samples, _get_ids_from_amplicon_set,
+                                 save_objects):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
@@ -305,15 +413,19 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': '1/1/1',
                   'community_profile': {'sample_set_ref': '1/1/1',
-                                        'profiles': {'pathway': {'data_epistemology': 'predicted',
-                                                                 'epistemology_method': 'FAPROTAX',
-                                                                 'profile_file_path': profile_file_path}}}}
-        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx, params)[0]['func_profile_ref']
+                                        'profiles': {
+                                            'pathway': {'data_epistemology': 'predicted',
+                                                        'epistemology_method': 'FAPROTAX',
+                                                        'profile_file_path': profile_file_path}}}}
+        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                params)[0]['func_profile_ref']
 
-        func_profile_data_str = 'null'.join(func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
+        func_profile_data_str = 'null'.join(
+                                func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
         func_profile_data = json.loads(func_profile_data_str)
 
-        self.assertCountEqual(func_profile_data.keys(), ['original_matrix_ref', 'community_profile'])
+        self.assertCountEqual(func_profile_data.keys(),
+                              ['original_matrix_ref', 'community_profile'])
         community_profile = func_profile_data['community_profile']
 
         self.assertCountEqual(community_profile.keys(), ['pathway', 'sample_set_ref'])
@@ -333,15 +445,18 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': '1/1/1',
                   'organism_profile': {'amplicon_set_ref': '1/1/1',
-                                       'profiles': {'EC': {'data_epistemology': 'predicted',
-                                                           'epistemology_method': 'FAPROTAX',
-                                                           'profile_file_path': profile_file_path}}}}
-        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx, params)[0]['func_profile_ref']
+                                       'profiles': {
+                                                'EC': {'data_epistemology': 'predicted',
+                                                       'epistemology_method': 'FAPROTAX',
+                                                       'profile_file_path': profile_file_path}}}}
+        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                params)[0]['func_profile_ref']
 
         func_profile_data_str = 'null'.join(func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
         func_profile_data = json.loads(func_profile_data_str)
 
-        self.assertCountEqual(func_profile_data.keys(), ['original_matrix_ref', 'organism_profile'])
+        self.assertCountEqual(func_profile_data.keys(),
+                              ['original_matrix_ref', 'organism_profile'])
         organism_profile = func_profile_data['organism_profile']
 
         self.assertCountEqual(organism_profile.keys(), ['EC', 'amplicon_set_ref'])
@@ -361,14 +476,17 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': '1/1/1',
                   'community_profile': {'sample_set_ref': '1/1/1',
-                                        'profiles': {'pathway': {'data_epistemology': 'predicted',
-                                                                 'epistemology_method': 'FAPROTAX',
-                                                                 'profile_file_path': profile_file_path}}},
+                                        'profiles': {
+                                            'pathway': {'data_epistemology': 'predicted',
+                                                        'epistemology_method': 'FAPROTAX',
+                                                        'profile_file_path': profile_file_path}}},
                   'organism_profile': {'amplicon_set_ref': '1/1/1',
-                                       'profiles': {'EC': {'data_epistemology': 'predicted',
-                                                           'epistemology_method': 'FAPROTAX',
-                                                           'profile_file_path': profile_file_path}}}}
-        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx, params)[0]['func_profile_ref']
+                                       'profiles': {
+                                            'EC': {'data_epistemology': 'predicted',
+                                                   'epistemology_method': 'FAPROTAX',
+                                                   'profile_file_path': profile_file_path}}}}
+        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                params)[0]['func_profile_ref']
 
         func_profile_data_str = 'null'.join(func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
         func_profile_data = json.loads(func_profile_data_str)
@@ -408,20 +526,23 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': '1/1/1',
                   'community_profile': {'sample_set_ref': '1/1/1',
-                                        'profiles': {'pathway': {'data_epistemology': 'predicted',
-                                                                 'epistemology_method': 'FAPROTAX',
-                                                                 'profile_file_path': profile_file_path},
-                                                     'func_table': {'data_epistemology': 'predicted',
-                                                                    'epistemology_method': 'FAPROTAX',
-                                                                    'profile_file_path': profile_file_path}}},
-                  'organism_profile': {'amplicon_set_ref': '1/1/1',
-                                       'profiles': {'EC': {'data_epistemology': 'predicted',
+                                        'profiles': {
+                                            'pathway': {'data_epistemology': 'predicted',
+                                                        'epistemology_method': 'FAPROTAX',
+                                                        'profile_file_path': profile_file_path},
+                                            'func_table': {'data_epistemology': 'predicted',
                                                            'epistemology_method': 'FAPROTAX',
-                                                           'profile_file_path': profile_file_path},
-                                                    'groups': {'data_epistemology': 'predicted',
-                                                               'epistemology_method': 'FAPROTAX',
-                                                               'profile_file_path': profile_file_path}}}}
-        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx, params)[0]['func_profile_ref']
+                                                           'profile_file_path': profile_file_path}}},
+                  'organism_profile': {'amplicon_set_ref': '1/1/1',
+                                       'profiles': {
+                                            'EC': {'data_epistemology': 'predicted',
+                                                   'epistemology_method': 'FAPROTAX',
+                                                   'profile_file_path': profile_file_path},
+                                            'groups': {'data_epistemology': 'predicted',
+                                                       'epistemology_method': 'FAPROTAX',
+                                                       'profile_file_path': profile_file_path}}}}
+        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                params)[0]['func_profile_ref']
 
         func_profile_data_str = 'null'.join(func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
         func_profile_data = json.loads(func_profile_data_str)
@@ -432,7 +553,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         organism_profile = func_profile_data['organism_profile']
         community_profile = func_profile_data['community_profile']
 
-        self.assertCountEqual(organism_profile.keys(), ['EC', 'amplicon_set_ref', 'custom_profiles'])
+        self.assertCountEqual(organism_profile.keys(),
+                              ['EC', 'amplicon_set_ref', 'custom_profiles'])
         self.assertEqual(organism_profile['amplicon_set_ref'], '1/1/1')
         EC_profile = organism_profile['EC']
         custom_profiles = organism_profile['custom_profiles']
@@ -453,7 +575,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         self.assertCountEqual(data_ids,
                               groups_profile['profile_data']['col_ids'])
 
-        self.assertCountEqual(community_profile.keys(), ['pathway', 'sample_set_ref', 'custom_profiles'])
+        self.assertCountEqual(community_profile.keys(),
+                              ['pathway', 'sample_set_ref', 'custom_profiles'])
         self.assertEqual(community_profile['sample_set_ref'], '1/1/1')
         pathway_profile = community_profile['pathway']
         custom_profiles = community_profile['custom_profiles']
@@ -487,20 +610,23 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': fake_object_ref,
                   'community_profile': {'sample_set_ref': fake_object_ref,
-                                        'profiles': {'pathway': {'data_epistemology': 'predicted',
-                                                                 'epistemology_method': 'FAPROTAX',
-                                                                 'profile_file_path': profile_file_path},
-                                                     'func_table': {'data_epistemology': 'predicted',
-                                                                    'epistemology_method': 'FAPROTAX',
-                                                                    'profile_file_path': profile_file_path}}},
-                  'organism_profile': {'amplicon_set_ref': fake_object_ref,
-                                       'profiles': {'EC': {'data_epistemology': 'predicted',
+                                        'profiles': {
+                                            'pathway': {'data_epistemology': 'predicted',
+                                                        'epistemology_method': 'FAPROTAX',
+                                                        'profile_file_path': profile_file_path},
+                                            'func_table': {'data_epistemology': 'predicted',
                                                            'epistemology_method': 'FAPROTAX',
-                                                           'profile_file_path': profile_file_path},
-                                                    'groups': {'data_epistemology': 'predicted',
-                                                               'epistemology_method': 'FAPROTAX',
-                                                               'profile_file_path': profile_file_path}}}}
-        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx, params)[0]['func_profile_ref']
+                                                           'profile_file_path': profile_file_path}}},
+                  'organism_profile': {'amplicon_set_ref': fake_object_ref,
+                                       'profiles': {
+                                            'EC': {'data_epistemology': 'predicted',
+                                                   'epistemology_method': 'FAPROTAX',
+                                                   'profile_file_path': profile_file_path},
+                                            'groups': {'data_epistemology': 'predicted',
+                                                       'epistemology_method': 'FAPROTAX',
+                                                       'profile_file_path': profile_file_path}}}}
+        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                params)[0]['func_profile_ref']
 
         func_profile_data = self.dfu.get_objects(
                                             {'object_refs': [func_profile_ref]})['data'][0]['data']
@@ -511,7 +637,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         organism_profile = func_profile_data['organism_profile']
         community_profile = func_profile_data['community_profile']
 
-        self.assertCountEqual(organism_profile.keys(), ['EC', 'amplicon_set_ref', 'custom_profiles'])
+        self.assertCountEqual(organism_profile.keys(),
+                              ['EC', 'amplicon_set_ref', 'custom_profiles'])
         self.assertEqual(organism_profile['amplicon_set_ref'], fake_object_ref)
         EC_profile = organism_profile['EC']
         custom_profiles = organism_profile['custom_profiles']
@@ -532,7 +659,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         self.assertCountEqual(data_ids,
                               groups_profile['profile_data']['col_ids'])
 
-        self.assertCountEqual(community_profile.keys(), ['pathway', 'sample_set_ref', 'custom_profiles'])
+        self.assertCountEqual(community_profile.keys(),
+                              ['pathway', 'sample_set_ref', 'custom_profiles'])
         self.assertEqual(community_profile['sample_set_ref'], fake_object_ref)
         pathway_profile = community_profile['pathway']
         custom_profiles = community_profile['custom_profiles']
