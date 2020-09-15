@@ -12,7 +12,7 @@ from installed_clients.KBaseReportClient import KBaseReport
 from FunctionalProfileUtil.Utils.SampleServiceUtil import SampleServiceUtil
 
 DATA_EPISTEMOLOGY = ['measured', 'asserted', 'predicted']
-DEFAULT_PATHWAY_NAME = ['pathway', 'EC', 'KO']
+DEFAULT_PROFILE_NAME = ['pathway', 'EC', 'KO']
 
 
 class ProfileImporter:
@@ -154,6 +154,44 @@ class ProfileImporter:
 
         return profile_data
 
+    def _fetch_existing_profile_names(profile):
+
+        existing_profile_names = list()
+        for default_name in DEFAULT_PROFILE_NAME:
+            if profile.get(default_name):
+                existing_profile_names.append(default_name)
+
+        custom_profile_names = profile.get('custom_profiles', {}).keys()
+
+        existing_profile_names.extend(custom_profile_names)
+
+        logging.info('Found existing profiles: {}'.format(existing_profile_names))
+
+        return existing_profile_names
+
+    def _create_profile_data(self, profile_table, data_ids, staging_file=False):
+        profile = dict()
+
+        data_epistemology = profile_table.get('data_epistemology')
+
+        if data_epistemology:
+            data_epistemology = data_epistemology.lower()
+            if data_epistemology not in DATA_EPISTEMOLOGY:
+                err_msg = 'Data epistemology can only be one of {}'.format(DATA_EPISTEMOLOGY)
+                raise ValueError(err_msg)
+
+        profile['data_epistemology'] = data_epistemology
+        for key in ['epistemology_method', 'description']:
+            profile[key] = profile_table.get(key)
+
+        profile_file_path = profile_table.get('profile_file_path')
+        profile_data = self._build_profile_table(profile_file_path, data_ids,
+                                                 staging_file=staging_file)
+
+        profile['profile_data'] = profile_data
+
+        return profile
+
     def _build_profile_data(self, profiles, data_ids, staging_file=False):
         logging.info('start building profile data')
 
@@ -176,7 +214,7 @@ class ProfileImporter:
             profile_data = self._build_profile_table(profile_file_path, data_ids,
                                                      staging_file=staging_file)
 
-            if profile_name in DEFAULT_PATHWAY_NAME:
+            if profile_name in DEFAULT_PROFILE_NAME:
                 gen_profile_data[profile_name] = {'data_epistemology': data_epistemology,
                                                   'epistemology_method': epistemology_method,
                                                   'description': description,
@@ -197,9 +235,71 @@ class ProfileImporter:
 
         func_profile_obj = self.dfu.get_objects({'object_refs': [func_profile_ref]})['data'][0]
         func_profile_info = func_profile_obj['info']
+        func_profile_obj_name = func_profile_info[1]
         func_profile_data = func_profile_obj['data']
 
-        func_profile_obj_name = func_profile_info[1]
+        ori_matrix_ref = func_profile_data['original_matrix_ref']
+        ori_community_profile = func_profile_data.get('community_profile', dict())
+        ori_organism_profile = func_profile_data.get('organism_profile', dict())
+
+        ori_community_profile_names = self._fetch_existing_profile_names(ori_community_profile)
+        ori_organism_profile_names = self._fetch_existing_profile_names(ori_organism_profile)
+
+        for profile_name, profile_table in community_profile.items():
+            logging.info('Start updating community profile')
+            if profile_name in ori_community_profile_names and not upsert:
+                raise ValueError('Profile [{}] already exists. Please set upsert to True.')
+
+            if not ori_community_profile:
+                matrix_data = self.dfu.get_objects({'object_refs': [ori_matrix_ref]})['data'][0]['data']
+                sample_set_ref = matrix_data.get('sample_set_ref')
+                if not sample_set_ref:
+                    raise ValueError('Cannot find sample set assocaited with original matrix')
+                func_profile_data['community_profile'] = {'sample_set_ref': sample_set_ref}
+
+                ori_community_profile = func_profile_data.get('community_profile')
+
+            sample_set_ref = ori_community_profile.get('sample_set_ref')
+            data_ids = self.sampleservice_util.get_ids_from_samples(sample_set_ref)
+            profile_data = self._create_profile_data(profile_table, data_ids,
+                                                     staging_file=staging_file)
+            if profile_name in DEFAULT_PROFILE_NAME:
+                ori_community_profile[profile_name] = profile_data
+            else:
+                custom_profiles = ori_community_profile.get('custom_profiles')
+                if custom_profiles:
+                    custom_profiles[profile_name] = profile_data
+                else:
+                    # create custom_profiles
+                    ori_community_profile['custom_profiles'][profile_name] = profile_data
+
+        for profile_name, profile_table in organism_profile.items():
+            logging.info('Start updating organism profile')
+            if profile_name in ori_organism_profile_names and not upsert:
+                raise ValueError('Profile [{}] already exists. Please set upsert to True.')
+
+            if not ori_organism_profile:
+                matrix_data = self.dfu.get_objects({'object_refs': [ori_matrix_ref]})['data'][0]['data']
+                amplicon_set_ref = matrix_data.get('amplicon_set_ref')
+                if not amplicon_set_ref:
+                    raise ValueError('Cannot find amplicon set assocaited with original matrix')
+                func_profile_data['organism_profile'] = {'amplicon_set_ref': amplicon_set_ref}
+
+                ori_organism_profile = func_profile_data.get('organism_profile')
+
+            amplicon_set_ref = ori_organism_profile.get('amplicon_set_ref')
+            data_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
+            profile_data = self._create_profile_data(profile_table, data_ids,
+                                                     staging_file=staging_file)
+            if profile_name in DEFAULT_PROFILE_NAME:
+                ori_organism_profile[profile_name] = profile_data
+            else:
+                custom_profiles = ori_organism_profile.get('custom_profiles')
+                if custom_profiles:
+                    custom_profiles[profile_name] = profile_data
+                else:
+                    # create custom_profiles
+                    ori_organism_profile['custom_profiles'][profile_name] = profile_data
 
         return func_profile_data, func_profile_obj_name
 
