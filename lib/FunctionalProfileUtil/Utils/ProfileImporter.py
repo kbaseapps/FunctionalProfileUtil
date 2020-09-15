@@ -458,3 +458,47 @@ class ProfileImporter:
         returnVal.update(report_output)
 
         return returnVal
+
+    def narrative_insert_func_profile(self, params):
+
+        workspace_id = params.get('workspace_id')
+        insert_params = {'workspace_id': workspace_id,
+                         'functional_profile_ref': params.get('functional_profile_ref'),
+                         'upsert': params.get('upsert', False),
+                         'staging_file': True}
+
+        community_profile = dict()
+        organism_profile = dict()
+
+        input_community_profile = params.get('community_profile')
+        input_organism_profile = params.get('organism_profile')
+
+        for profile in input_community_profile:
+            profile_name = profile.get('community_profile_name')
+
+            community_profile[profile_name] = {
+                            'data_epistemology': profile.get('community_data_epistemology'),
+                            'epistemology_method': profile.get('community_epistemology_method'),
+                            'description': profile.get('community_description'),
+                            'profile_file_path': profile.get('community_profile_file_path')}
+
+        for profile in input_organism_profile:
+            profile_name = profile.get('organism_profile_name')
+
+            organism_profile[profile_name] = {
+                            'data_epistemology': profile.get('organism_data_epistemology'),
+                            'epistemology_method': profile.get('organism_epistemology_method'),
+                            'description': profile.get('organism_description'),
+                            'profile_file_path': profile.get('organism_profile_file_path')}
+
+        insert_params['community_profile'] = community_profile
+        insert_params['organism_profile'] = organism_profile
+
+        func_profile_ref = self.insert_func_profile(insert_params)['func_profile_ref']
+
+        returnVal = {'func_profile_ref': func_profile_ref}
+
+        report_output = self._gen_func_profile_report(func_profile_ref, workspace_id)
+        returnVal.update(report_output)
+
+        return returnVal
