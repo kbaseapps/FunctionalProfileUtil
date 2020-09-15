@@ -160,6 +160,130 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                       'organism_profile': {'profiles': {}}}
             self.serviceImpl.import_func_profile(self.ctx, params)
 
+    def mock_get_objects(params):
+        print('Mocking DataFileUtilClient.get_objects')
+
+        obj_data = {'data': [{'data': {'sample_set_ref': '1/1/1',
+                                       'amplicon_set_ref': '1/1/1'}}]}
+
+        return obj_data
+
+    @patch.object(SampleServiceUtil, "get_ids_from_samples", return_value=DATA_IDS)
+    @patch.object(ProfileImporter, "_get_ids_from_amplicon_set", return_value=DATA_IDS)
+    @patch.object(DataFileUtil, "get_objects", side_effect=mock_get_objects)
+    def test___update_func_profile(self, get_ids_from_samples, _get_ids_from_amplicon_set, get_objects):
+
+        data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
+                    'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
+
+        profile_file_path = os.path.join('data', 'func_table.tsv')
+
+        # insert community profile
+        func_profile_data = {'original_matrix_ref': '1/1/1',
+                             'community_profile': {'pathway': {'data_epistemology': 'predicted'}}}
+        community_profile = {'EC': {'data_epistemology': 'predicted',
+                                    'profile_file_path': profile_file_path}}
+        organism_profile = {}
+        updated_data = self.profile_importer._update_func_profile(func_profile_data,
+                                                                  community_profile,
+                                                                  organism_profile)
+
+        expected_profiles = ['pathway', 'EC']
+        expected_keys = ['original_matrix_ref', 'community_profile']
+        self.assertCountEqual(expected_keys, updated_data.keys())
+        self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
+        self.assertCountEqual(data_ids,
+                              updated_data['community_profile']['EC']['profile_data']['col_ids'])
+
+        # insert organism profile
+        func_profile_data = {'original_matrix_ref': '1/1/1',
+                             'organism_profile': {'EC': {'data_epistemology': 'predicted'}}}
+        organism_profile = {'KO': {'data_epistemology': 'predicted',
+                                   'profile_file_path': profile_file_path}}
+        community_profile = {}
+        updated_data = self.profile_importer._update_func_profile(func_profile_data,
+                                                                  community_profile,
+                                                                  organism_profile)
+
+        expected_profiles = ['KO', 'EC']
+        expected_keys = ['original_matrix_ref', 'organism_profile']
+        self.assertCountEqual(expected_keys, updated_data.keys())
+        self.assertCountEqual(expected_profiles, updated_data['organism_profile'].keys())
+        self.assertCountEqual(data_ids,
+                              updated_data['organism_profile']['KO']['profile_data']['col_ids'])
+
+        # insert custom community profile
+        func_profile_data = {'original_matrix_ref': '1/1/1',
+                             'community_profile': {'pathway': {'data_epistemology': 'predicted'}}}
+        community_profile = {'group': {'data_epistemology': 'predicted',
+                                       'profile_file_path': profile_file_path}}
+        organism_profile = {}
+        updated_data = self.profile_importer._update_func_profile(func_profile_data,
+                                                                  community_profile,
+                                                                  organism_profile)
+
+        expected_profiles = ['pathway', 'custom_profiles']
+        expected_keys = ['original_matrix_ref', 'community_profile']
+        self.assertCountEqual(expected_keys, updated_data.keys())
+        self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
+        self.assertCountEqual(updated_data['community_profile']['custom_profiles'].keys(),
+                              ['group'])
+        self.assertCountEqual(data_ids,
+                              updated_data['community_profile']['custom_profiles']['group']['profile_data']['col_ids'])
+
+        # upsert community profile
+        func_profile_data = {'original_matrix_ref': '1/1/1',
+                             'community_profile': {'pathway': {'data_epistemology': 'predicted'}}}
+        community_profile = {'pathway': {'data_epistemology': 'measured',
+                                         'profile_file_path': profile_file_path}}
+        organism_profile = {}
+        updated_data = self.profile_importer._update_func_profile(func_profile_data,
+                                                                  community_profile,
+                                                                  organism_profile,
+                                                                  upsert=True)
+
+        expected_profiles = ['pathway']
+        expected_keys = ['original_matrix_ref', 'community_profile']
+        self.assertCountEqual(expected_keys, updated_data.keys())
+        self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
+        self.assertEqual('measured', updated_data['community_profile']['pathway']['data_epistemology'])
+        self.assertCountEqual(data_ids,
+                              updated_data['community_profile']['pathway']['profile_data']['col_ids'])
+
+        # create community profile
+        func_profile_data = {'original_matrix_ref': '1/1/1'}
+        community_profile = {'pathway': {'data_epistemology': 'measured',
+                                         'profile_file_path': profile_file_path}}
+        organism_profile = {}
+        updated_data = self.profile_importer._update_func_profile(func_profile_data,
+                                                                  community_profile,
+                                                                  organism_profile)
+
+        expected_profiles = ['pathway', 'sample_set_ref']
+        expected_keys = ['original_matrix_ref', 'community_profile']
+        self.assertCountEqual(expected_keys, updated_data.keys())
+        self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
+        self.assertEqual('measured', updated_data['community_profile']['pathway']['data_epistemology'])
+        self.assertCountEqual(data_ids,
+                              updated_data['community_profile']['pathway']['profile_data']['col_ids'])
+
+        # create custom community profile
+        func_profile_data = {'original_matrix_ref': '1/1/1'}
+        community_profile = {'group': {'data_epistemology': 'measured',
+                                       'profile_file_path': profile_file_path}}
+        organism_profile = {}
+        updated_data = self.profile_importer._update_func_profile(func_profile_data,
+                                                                  community_profile,
+                                                                  organism_profile)
+
+        expected_profiles = ['custom_profiles', 'sample_set_ref']
+        expected_keys = ['original_matrix_ref', 'community_profile']
+        self.assertCountEqual(expected_keys, updated_data.keys())
+        self.assertCountEqual(expected_profiles, updated_data['community_profile'].keys())
+        self.assertEqual('measured', updated_data['community_profile']['custom_profiles']['group']['data_epistemology'])
+        self.assertCountEqual(data_ids,
+                              updated_data['community_profile']['custom_profiles']['group']['profile_data']['col_ids'])
+
     def mock_save_objects(params):
         print('Mocking DataFileUtilClient.save_objects')
 

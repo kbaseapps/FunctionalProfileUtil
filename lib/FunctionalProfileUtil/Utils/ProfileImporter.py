@@ -154,7 +154,7 @@ class ProfileImporter:
 
         return profile_data
 
-    def _fetch_existing_profile_names(profile):
+    def _fetch_existing_profile_names(self, profile):
 
         existing_profile_names = list()
         for default_name in DEFAULT_PROFILE_NAME:
@@ -230,13 +230,8 @@ class ProfileImporter:
 
         return gen_profile_data
 
-    def _update_func_profile(self, func_profile_ref, community_profile, organism_profile,
+    def _update_func_profile(self, func_profile_data, community_profile, organism_profile,
                              staging_file=False, upsert=False):
-
-        func_profile_obj = self.dfu.get_objects({'object_refs': [func_profile_ref]})['data'][0]
-        func_profile_info = func_profile_obj['info']
-        func_profile_obj_name = func_profile_info[1]
-        func_profile_data = func_profile_obj['data']
 
         ori_matrix_ref = func_profile_data['original_matrix_ref']
         ori_community_profile = func_profile_data.get('community_profile', dict())
@@ -247,7 +242,7 @@ class ProfileImporter:
 
         for profile_name, profile_table in community_profile.items():
             logging.info('Start updating community profile')
-            if profile_name in ori_community_profile_names and not upsert:
+            if ori_community_profile and profile_name in ori_community_profile_names and not upsert:
                 raise ValueError('Profile [{}] already exists. Please set upsert to True.')
 
             if not ori_community_profile:
@@ -271,11 +266,12 @@ class ProfileImporter:
                     custom_profiles[profile_name] = profile_data
                 else:
                     # create custom_profiles
+                    ori_community_profile['custom_profiles'] = dict()
                     ori_community_profile['custom_profiles'][profile_name] = profile_data
 
         for profile_name, profile_table in organism_profile.items():
             logging.info('Start updating organism profile')
-            if profile_name in ori_organism_profile_names and not upsert:
+            if ori_organism_profile and profile_name in ori_organism_profile_names and not upsert:
                 raise ValueError('Profile [{}] already exists. Please set upsert to True.')
 
             if not ori_organism_profile:
@@ -299,9 +295,10 @@ class ProfileImporter:
                     custom_profiles[profile_name] = profile_data
                 else:
                     # create custom_profiles
+                    ori_community_profile['custom_profiles'] = dict()
                     ori_organism_profile['custom_profiles'][profile_name] = profile_data
 
-        return func_profile_data, func_profile_obj_name
+        return func_profile_data
 
     def _gen_func_profile(self, original_matrix_ref, community_profile, organism_profile,
                           staging_file=False):
@@ -390,19 +387,23 @@ class ProfileImporter:
                                        'functional_profile_ref'))
 
         workspace_id = params.get('workspace_id')
-        functional_profile_ref = params.get('functional_profile_ref')
+        func_profile_ref = params.get('functional_profile_ref')
         staging_file = params.get('staging_file', False)
-        upsert = params.get('staging_file', False)
+        upsert = params.get('upsert', False)
 
-        community_profile = params.get('community_profile')
-        organism_profile = params.get('organism_profile')
+        community_profile = params.get('community_profile', dict())
+        organism_profile = params.get('organism_profile', dict())
 
-        (func_profile_data,
-         func_profile_obj_name) = self._update_func_profile(functional_profile_ref,
-                                                            community_profile,
-                                                            organism_profile,
-                                                            staging_file=staging_file,
-                                                            upsert=upsert)
+        func_profile_obj = self.dfu.get_objects({'object_refs': [func_profile_ref]})['data'][0]
+        func_profile_info = func_profile_obj['info']
+        func_profile_obj_name = func_profile_info[1]
+        func_profile_data = func_profile_obj['data']
+
+        func_profile_data = self._update_func_profile(func_profile_data,
+                                                      community_profile,
+                                                      organism_profile,
+                                                      staging_file=staging_file,
+                                                      upsert=upsert)
 
         func_profile_ref = self._save_func_profile(workspace_id,
                                                    func_profile_data,
