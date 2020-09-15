@@ -22,9 +22,9 @@ class FunctionalProfileUtil:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "0.0.1"
+    VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/FunctionalProfileUtil.git"
-    GIT_COMMIT_HASH = "946f4550fed57f5f76917d7d4e9b308437ebf03b"
+    GIT_COMMIT_HASH = "798121e21dcfe1a6c4e4c6f649cb921cd695dc7e"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -97,6 +97,51 @@ class FunctionalProfileUtil:
         # return the results
         return [returnVal]
 
+    def insert_func_profile(self, ctx, params):
+        """
+        :param params: instance of type "InsertFuncProfileParams"
+           (staging_file - profile_file_path provided in ProfileTable is a
+           staging file path. default: False upsert - upsert profile.
+           default: False) -> structure: parameter "workspace_id" of Long,
+           parameter "functional_profile_ref" of type "WSRef" (Ref to a WS
+           object @id ws), parameter "staging_file" of type "bool" (A boolean
+           - 0 for false, 1 for true. @range (0, 1)), parameter "upsert" of
+           type "bool" (A boolean - 0 for false, 1 for true. @range (0, 1)),
+           parameter "community_profile" of mapping from type "profile_name"
+           to type "ProfileTable" (profile_file_path - either a local file
+           path or staging file path optional arguments: data_epistemology -
+           how was data acquired. one of: measured, asserted, predicted
+           epistemology_method - method/program to be used to acquired data.
+           e.g. FAPROTAX, PICRUSt2 description - description for the profile)
+           -> structure: parameter "data_epistemology" of String, parameter
+           "epistemology_method" of String, parameter "description" of
+           String, parameter "profile_file_path" of String, parameter
+           "organism_profile" of mapping from type "profile_name" to type
+           "ProfileTable" (profile_file_path - either a local file path or
+           staging file path optional arguments: data_epistemology - how was
+           data acquired. one of: measured, asserted, predicted
+           epistemology_method - method/program to be used to acquired data.
+           e.g. FAPROTAX, PICRUSt2 description - description for the profile)
+           -> structure: parameter "data_epistemology" of String, parameter
+           "epistemology_method" of String, parameter "description" of
+           String, parameter "profile_file_path" of String
+        :returns: instance of type "ImportFuncProfileResults" -> structure:
+           parameter "func_profile_ref" of type "WSRef" (Ref to a WS object
+           @id ws)
+        """
+        # ctx is the context object
+        # return variables are: returnVal
+        #BEGIN insert_func_profile
+        returnVal = self.profile_importer.insert_func_profile(params)
+        #END insert_func_profile
+
+        # At some point might do deeper type checking...
+        if not isinstance(returnVal, dict):
+            raise ValueError('Method insert_func_profile return value ' +
+                             'returnVal is not type dict as required.')
+        # return the results
+        return [returnVal]
+
     def narrative_import_func_profile(self, ctx, params):
         """
         :param params: instance of mapping from String to unspecified object
@@ -114,6 +159,27 @@ class FunctionalProfileUtil:
         # At some point might do deeper type checking...
         if not isinstance(returnVal, dict):
             raise ValueError('Method narrative_import_func_profile return value ' +
+                             'returnVal is not type dict as required.')
+        # return the results
+        return [returnVal]
+
+    def narrative_insert_func_profile(self, ctx, params):
+        """
+        :param params: instance of mapping from String to unspecified object
+        :returns: instance of type "ReportResults" -> structure: parameter
+           "report_name" of String, parameter "report_ref" of type "WSRef"
+           (Ref to a WS object @id ws), parameter "func_profile_ref" of type
+           "WSRef" (Ref to a WS object @id ws)
+        """
+        # ctx is the context object
+        # return variables are: returnVal
+        #BEGIN narrative_insert_func_profile
+        returnVal = self.profile_importer.narrative_insert_func_profile(params)
+        #END narrative_insert_func_profile
+
+        # At some point might do deeper type checking...
+        if not isinstance(returnVal, dict):
+            raise ValueError('Method narrative_insert_func_profile return value ' +
                              'returnVal is not type dict as required.')
         # return the results
         return [returnVal]
