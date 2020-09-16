@@ -184,7 +184,7 @@ class ProfileImporter:
                          'workspace_id': workspace_id,
                          'html_links': output_html_files,
                          'direct_html_link_index': 0,
-                         'html_window_height': 660,
+                         'html_window_height': 330,
                          'report_object_name': 'func_profile_viewer_' + str(uuid.uuid4())}
 
         kbase_report_client = KBaseReport(self.callback_url, token=self.token)
@@ -382,7 +382,7 @@ class ProfileImporter:
                     custom_profiles[profile_name] = profile_data
                 else:
                     # create custom_profiles
-                    ori_community_profile['custom_profiles'] = dict()
+                    ori_organism_profile['custom_profiles'] = dict()
                     ori_organism_profile['custom_profiles'][profile_name] = profile_data
 
         return func_profile_data
