@@ -125,11 +125,14 @@ class ProfileImporter:
         if community_profile_names:
             tab_content += '''\n<h5>Community Profile: {}</h5>'''.format(
                                                                 ', '.join(community_profile_names))
+        else:
+            tab_content += '''\n<h5>Community Profile: (empty)</h5>'''
 
         if organism_profile_names:
-            tab_content += '''\n<br>'''
             tab_content += '''\n<h5>Organism Profile: {}</h5>'''.format(
                                                                 ', '.join(organism_profile_names))
+        else:
+            tab_content += '''\n<h5>Organism Profile: (empty)</h5>'''
 
         tab_content += '\n</div>\n'
 
