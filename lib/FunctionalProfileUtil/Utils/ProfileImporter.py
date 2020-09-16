@@ -92,15 +92,97 @@ class ProfileImporter:
 
         return "%s/%s/%s" % (info[6], info[0], info[4])
 
+    def _generate_visualization_content(self, func_profile_ref):
+        func_profile_data = self.dfu.get_objects(
+                                            {'object_refs': [func_profile_ref]})['data'][0]['data']
+
+        community_profile = func_profile_data.get('community_profile', dict())
+        organism_profile = func_profile_data.get('organism_profile', dict())
+
+        community_profile_names = self._fetch_existing_profile_names(community_profile)
+        organism_profile_names = self._fetch_existing_profile_names(organism_profile)
+
+        tab_def_content = ''
+        tab_content = ''
+
+        viewer_name = 'profile_summary'
+        tab_def_content += '''\n<div class="tab">\n'''
+        tab_def_content += '''\n<button class="tablinks" '''
+        tab_def_content += '''onclick="openTab(event, '{}')"'''.format(viewer_name)
+        tab_def_content += ''' id="defaultOpen"'''
+        tab_def_content += '''>Functional Porfile Summary</button>\n'''
+
+        tab_content += '''\n<div id="{}" class="tabcontent" style="overflow:auto">'''.format(
+                                                                                    viewer_name)
+
+        tab_content += '''\n<h5>Total Profile Size: {}</h5>'''.format(
+                                        len(community_profile_names) + len(organism_profile_names))
+
+        tab_content += '''\n<br>'''
+        tab_content += '''\n<hr style="height:2px;border-width:0;color:gray;background-color:gray">'''
+        tab_content += '''\n<br>'''
+
+        if community_profile_names:
+            tab_content += '''\n<h5>Community Profile: {}</h5>'''.format(
+                                                                ', '.join(community_profile_names))
+
+        if organism_profile_names:
+            tab_content += '''\n<br>'''
+            tab_content += '''\n<h5>Organism Profile: {}</h5>'''.format(
+                                                                ', '.join(organism_profile_names))
+
+        tab_content += '\n</div>\n'
+
+        tab_def_content += '\n</div>\n'
+        return tab_def_content + tab_content
+
+    def _generate_html_report(self, func_profile_ref):
+
+        logging.info('Start generating report page')
+
+        output_directory = os.path.join(self.scratch, str(uuid.uuid4()))
+        logging.info('Start generating html report in {}'.format(output_directory))
+
+        html_report = list()
+
+        self._mkdir_p(output_directory)
+        result_file_path = os.path.join(output_directory, 'func_profile_viewer_report.html')
+
+        visualization_content = self._generate_visualization_content(func_profile_ref)
+
+        with open(result_file_path, 'w') as result_file:
+            with open(os.path.join(os.path.dirname(__file__),
+                                   'templates', 'func_profile_template.html'),
+                      'r') as report_template_file:
+                report_template = report_template_file.read()
+                report_template = report_template.replace('<p>Visualization_Content</p>',
+                                                          visualization_content)
+                result_file.write(report_template)
+
+        report_shock_id = self.dfu.file_to_shock({'file_path': output_directory,
+                                                  'pack': 'zip'})['shock_id']
+
+        html_report.append({'shock_id': report_shock_id,
+                            'name': os.path.basename(result_file_path),
+                            'label': os.path.basename(result_file_path),
+                            'description': 'HTML summary report for Import Amplicon Matrix App'
+                            })
+        return html_report
+
     def _gen_func_profile_report(self, func_profile_ref, workspace_id):
         logging.info('start generating report')
 
         objects_created = [{'ref': func_profile_ref, 'description': 'FunctionalProfile Object'}]
 
+        output_html_files = self._generate_html_report(func_profile_ref)
+
         report_params = {'message': '',
                          'objects_created': objects_created,
                          'workspace_id': workspace_id,
-                         'report_object_name': 'import_func_profile_' + str(uuid.uuid4())}
+                         'html_links': output_html_files,
+                         'direct_html_link_index': 0,
+                         'html_window_height': 660,
+                         'report_object_name': 'func_profile_viewer_' + str(uuid.uuid4())}
 
         kbase_report_client = KBaseReport(self.callback_url, token=self.token)
         output = kbase_report_client.create_extended_report(report_params)
@@ -243,7 +325,9 @@ class ProfileImporter:
         for profile_name, profile_table in community_profile.items():
             logging.info('Start updating community profile')
             if ori_community_profile and profile_name in ori_community_profile_names and not upsert:
-                raise ValueError('Profile [{}] already exists. Please set upsert to True.')
+                error_msg = 'Profile [{}] already exists. Please set upsert to True.'.format(
+                                                                                    profile_name)
+                raise ValueError(error_msg)
 
             if not ori_community_profile:
                 matrix_data = self.dfu.get_objects({'object_refs': [ori_matrix_ref]})['data'][0]['data']
