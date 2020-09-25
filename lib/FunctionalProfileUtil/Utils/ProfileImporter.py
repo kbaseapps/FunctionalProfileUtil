@@ -12,7 +12,6 @@ from installed_clients.KBaseReportClient import KBaseReport
 from FunctionalProfileUtil.Utils.SampleServiceUtil import SampleServiceUtil
 
 DATA_EPISTEMOLOGY = ['measured', 'asserted', 'predicted']
-DEFAULT_PROFILE_NAME = ['pathway', 'EC', 'KO']
 
 
 class ProfileImporter:
@@ -75,7 +74,7 @@ class ProfileImporter:
         # fill NA with "None" so that they are properly represented as nulls in the KBase Object
         df = df.where((pd.notnull(df)), None)
 
-        df = df.applymap(str)
+        # df = df.applymap(str)
 
         return df
 
@@ -242,11 +241,8 @@ class ProfileImporter:
     def _fetch_existing_profile_names(self, profile):
 
         existing_profile_names = list()
-        for default_name in DEFAULT_PROFILE_NAME:
-            if profile.get(default_name):
-                existing_profile_names.append(default_name)
 
-        custom_profile_names = profile.get('custom_profiles', {}).keys()
+        custom_profile_names = profile.get('profiles', {}).keys()
 
         existing_profile_names.extend(custom_profile_names)
 
@@ -299,19 +295,13 @@ class ProfileImporter:
             profile_data = self._build_profile_table(profile_file_path, data_ids,
                                                      staging_file=staging_file)
 
-            if profile_name in DEFAULT_PROFILE_NAME:
-                gen_profile_data[profile_name] = {'data_epistemology': data_epistemology,
-                                                  'epistemology_method': epistemology_method,
-                                                  'description': description,
-                                                  'profile_data': profile_data}
-            else:
-                if not gen_profile_data.get('custom_profiles'):
-                    gen_profile_data['custom_profiles'] = dict()
-                gen_profile_data['custom_profiles'][profile_name] = {
-                                                        'data_epistemology': data_epistemology,
-                                                        'epistemology_method': epistemology_method,
-                                                        'description': description,
-                                                        'profile_data': profile_data}
+            if not gen_profile_data.get('profiles'):
+                gen_profile_data['profiles'] = dict()
+            gen_profile_data['profiles'][profile_name] = {
+                                                    'data_epistemology': data_epistemology,
+                                                    'epistemology_method': epistemology_method,
+                                                    'description': description,
+                                                    'profile_data': profile_data}
 
         return gen_profile_data
 
@@ -345,16 +335,14 @@ class ProfileImporter:
             data_ids = self.sampleservice_util.get_ids_from_samples(sample_set_ref)
             profile_data = self._create_profile_data(profile_table, data_ids,
                                                      staging_file=staging_file)
-            if profile_name in DEFAULT_PROFILE_NAME:
-                ori_community_profile[profile_name] = profile_data
+
+            profiles = ori_community_profile.get('profiles')
+            if profiles:
+                profiles[profile_name] = profile_data
             else:
-                custom_profiles = ori_community_profile.get('custom_profiles')
-                if custom_profiles:
-                    custom_profiles[profile_name] = profile_data
-                else:
-                    # create custom_profiles
-                    ori_community_profile['custom_profiles'] = dict()
-                    ori_community_profile['custom_profiles'][profile_name] = profile_data
+                # create profiles
+                ori_community_profile['profiles'] = dict()
+                ori_community_profile['profiles'][profile_name] = profile_data
 
         for profile_name, profile_table in organism_profile.items():
             logging.info('Start updating organism profile')
@@ -374,16 +362,14 @@ class ProfileImporter:
             data_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
             profile_data = self._create_profile_data(profile_table, data_ids,
                                                      staging_file=staging_file)
-            if profile_name in DEFAULT_PROFILE_NAME:
-                ori_organism_profile[profile_name] = profile_data
+
+            profiles = ori_organism_profile.get('profiles')
+            if profiles:
+                profiles[profile_name] = profile_data
             else:
-                custom_profiles = ori_organism_profile.get('custom_profiles')
-                if custom_profiles:
-                    custom_profiles[profile_name] = profile_data
-                else:
-                    # create custom_profiles
-                    ori_organism_profile['custom_profiles'] = dict()
-                    ori_organism_profile['custom_profiles'][profile_name] = profile_data
+                # create profiles
+                ori_organism_profile['profiles'] = dict()
+                ori_organism_profile['profiles'][profile_name] = profile_data
 
         return func_profile_data
 

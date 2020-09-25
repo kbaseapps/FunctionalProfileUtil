@@ -30,7 +30,7 @@ module KBaseFunctionalProfile {
     typedef structure {
       list<string> row_ids;
       list<string> col_ids;
-      list<list<string>> values;
+      list<list<float>> values;
     } Matrix2D;
 
     /*
@@ -54,15 +54,12 @@ module KBaseFunctionalProfile {
       sample_set_ref - associated with community_profile
       amplicon_set_ref - associated with organism_profile
 
-      @optional sample_set_ref amplicon_set_ref pathway EC KO custom_profiles
+      @optional sample_set_ref amplicon_set_ref profiles
     */
     typedef structure {
       WSRef sample_set_ref;
       WSRef amplicon_set_ref;
-      ProfileTable pathway;
-      ProfileTable EC;
-      ProfileTable KO;
-      mapping<string, ProfileTable> custom_profiles;
+      mapping<string, ProfileTable> profiles;
     } Profile;
 
     /*
