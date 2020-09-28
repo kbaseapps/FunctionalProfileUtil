@@ -9,6 +9,7 @@ import shutil
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseReportClient import KBaseReport
+from installed_clients.kb_GenericsReportClient import kb_GenericsReport
 
 from FunctionalProfileUtil.Utils.SampleServiceUtil import SampleServiceUtil
 
@@ -505,6 +506,7 @@ class ProfileImporter:
         self.scratch = config['scratch']
         self.token = config['KB_AUTH_TOKEN']
         self.dfu = DataFileUtil(self.callback_url)
+        self.report_util = kb_GenericsReport(self.callback_url)
         self.sampleservice_util = SampleServiceUtil(config)
 
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
