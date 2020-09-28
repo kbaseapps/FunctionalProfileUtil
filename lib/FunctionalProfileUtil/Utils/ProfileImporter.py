@@ -5,6 +5,7 @@ import os
 import pandas as pd
 from xlrd.biffh import XLRDError
 import uuid
+import shutil
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseReportClient import KBaseReport
@@ -91,7 +92,21 @@ class ProfileImporter:
 
         return "%s/%s/%s" % (info[6], info[0], info[4])
 
-    def _generate_visualization_content(self, func_profile_ref):
+    def _generate_heatmap(self, data, output_directory, profile_name):
+
+        data_df = pd.DataFrame(data['values'],
+                               index=data['row_ids'], columns=data['col_ids'])
+        tsv_file_path = os.path.join(output_directory, 'heatmap_data_{}_{}.tsv'.format(
+                                                                    profile_name,
+                                                                    str(uuid.uuid4())))
+        data_df.to_csv(tsv_file_path)
+        heatmap_dir = self.report_util.build_heatmap_html({
+                                            'tsv_file_path': tsv_file_path,
+                                            'cluster_data': True})['html_dir']
+
+        return heatmap_dir
+
+    def _generate_visualization_content(self, func_profile_ref, output_directory):
         func_profile_data = self.dfu.get_objects(
                                             {'object_refs': [func_profile_ref]})['data'][0]['data']
 
@@ -101,9 +116,26 @@ class ProfileImporter:
         community_profile_names = self._fetch_existing_profile_names(community_profile)
         organism_profile_names = self._fetch_existing_profile_names(organism_profile)
 
+        community_profile_heatmap = dict()
+        if community_profile:
+            profiles = community_profile.get('profiles')
+            for profile_name, profile_table in profiles.items():
+                data = profile_table.get('profile_data')
+                heatmap_dir = self._generate_heatmap(data, output_directory, profile_name)
+                community_profile_heatmap[profile_name] = heatmap_dir
+
+        organism_profile_heatmap = dict()
+        if organism_profile:
+            profiles = organism_profile.get('profiles')
+            for profile_name, profile_table in profiles.items():
+                data = profile_table.get('profile_data')
+                heatmap_dir = self._generate_heatmap(data, output_directory, profile_name)
+                organism_profile_heatmap[profile_name] = heatmap_dir
+
         tab_def_content = ''
         tab_content = ''
 
+        # build profile summary page
         viewer_name = 'profile_summary'
         tab_def_content += '''\n<div class="tab">\n'''
         tab_def_content += '''\n<button class="tablinks" '''
@@ -132,8 +164,62 @@ class ProfileImporter:
                                                                 ', '.join(organism_profile_names))
         else:
             tab_content += '''\n<h5>Organism Profile: (empty)</h5>'''
-
         tab_content += '\n</div>\n'
+
+        # build profile heatmap pages
+        if community_profile_heatmap:
+            for profile_name, heatmap_dir in community_profile_heatmap.items():
+                viewer_name = 'CommProfileViewer_{}'.format(profile_name)
+                tab_def_content += '''\n<button class="tablinks" '''
+                tab_def_content += '''onclick="openTab(event, '{}')"'''.format(viewer_name)
+                tab_def_content += '''>{} (Community)</button>\n'''.format(profile_name)
+
+                heatmap_report_files = os.listdir(heatmap_dir)
+                heatmap_index_page = None
+                for heatmap_report_file in heatmap_report_files:
+                    if heatmap_report_file.endswith('.html'):
+                        heatmap_index_page = heatmap_report_file
+                    shutil.copy2(os.path.join(heatmap_dir, heatmap_report_file),
+                                 output_directory)
+
+                if heatmap_index_page:
+                    tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
+                    tab_content += '\n<iframe height="900px" width="100%" '
+                    tab_content += 'src="{}" '.format(heatmap_index_page)
+                    tab_content += 'style="border:none;"></iframe>'
+                    tab_content += '\n</div>\n'
+                else:
+                    tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
+                    tab_content += '''\n<p style="color:red;" >'''
+                    tab_content += '''Heatmap is too large to be displayed.</p>\n'''
+                    tab_content += '\n</div>\n'
+
+        if organism_profile_heatmap:
+            for profile_name, heatmap_dir in organism_profile_heatmap.items():
+                viewer_name = 'OrgProfileViewer_{}'.format(profile_name)
+                tab_def_content += '''\n<button class="tablinks" '''
+                tab_def_content += '''onclick="openTab(event, '{}')"'''.format(viewer_name)
+                tab_def_content += '''>{} (Organism)</button>\n'''.format(profile_name)
+
+                heatmap_report_files = os.listdir(heatmap_dir)
+                heatmap_index_page = None
+                for heatmap_report_file in heatmap_report_files:
+                    if heatmap_report_file.endswith('.html'):
+                        heatmap_index_page = heatmap_report_file
+                    shutil.copy2(os.path.join(heatmap_dir, heatmap_report_file),
+                                 output_directory)
+
+                if heatmap_index_page:
+                    tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
+                    tab_content += '\n<iframe height="900px" width="100%" '
+                    tab_content += 'src="{}" '.format(heatmap_index_page)
+                    tab_content += 'style="border:none;"></iframe>'
+                    tab_content += '\n</div>\n'
+                else:
+                    tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
+                    tab_content += '''\n<p style="color:red;" >'''
+                    tab_content += '''Heatmap is too large to be displayed.</p>\n'''
+                    tab_content += '\n</div>\n'
 
         tab_def_content += '\n</div>\n'
         return tab_def_content + tab_content
@@ -150,7 +236,8 @@ class ProfileImporter:
         self._mkdir_p(output_directory)
         result_file_path = os.path.join(output_directory, 'func_profile_viewer_report.html')
 
-        visualization_content = self._generate_visualization_content(func_profile_ref)
+        visualization_content = self._generate_visualization_content(func_profile_ref,
+                                                                     output_directory)
 
         with open(result_file_path, 'w') as result_file:
             with open(os.path.join(os.path.dirname(__file__),
