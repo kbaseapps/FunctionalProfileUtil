@@ -271,7 +271,7 @@ class ProfileImporter:
                          'workspace_id': workspace_id,
                          'html_links': output_html_files,
                          'direct_html_link_index': 0,
-                         'html_window_height': 330,
+                         'html_window_height': 660,
                          'report_object_name': 'func_profile_viewer_' + str(uuid.uuid4())}
 
         kbase_report_client = KBaseReport(self.callback_url, token=self.token)
