@@ -42,10 +42,11 @@ module KBaseProfile {
 
       data_epistemology - how was data acquired. one of: measured, asserted, predicted
       epistemology_method - method/program to be used to acquire data. e.g. FAPROTAX, PICRUSt2
-      profile_type - type of profile. one of community or organism
+      profile_type - type of profile. e.g. amplicon, MG
+      profile_category - category of profile. one of community or organism
 
       @optional original_matrix_ref sample_set_ref amplicon_set_ref
-      @optional data_epistemology epistemology_method description profile_type
+      @optional data_epistemology epistemology_method description profile_type profile_category
 
       @metadata ws original_matrix_ref as original_matrix_ref
       @metadata ws sample_set_ref as sample_set_ref
@@ -56,6 +57,7 @@ module KBaseProfile {
       @metadata ws epistemology_method as epistemology_method
       @metadata ws description as description
       @metadata ws profile_type as profile_type
+      @metadata ws profile_category as profile_category
     */
     typedef structure {
       WSRef original_matrix_ref;
@@ -67,6 +69,7 @@ module KBaseProfile {
       string epistemology_method;
       string description;
       string profile_type;
+      string profile_category;
 
     } FunctionalProfile;
 

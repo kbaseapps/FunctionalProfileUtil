@@ -17,7 +17,8 @@ module FunctionalProfileUtil {
     /*
       profile_file_path - either a local file path or staging file path
       staging_file - profile_file_path provided in ProfileTable is a staging file path. default: False
-      profile_type - type of profile. one of community or organism
+      profile_type - type of profile. e.g. amplicon, MG
+      profile_category - category of profile. one of community or organism
 
       one of:
       sample_set_ref - associated with community_profile
@@ -36,13 +37,14 @@ module FunctionalProfileUtil {
       bool staging_file;
 
       WSRef original_matrix_ref;
-      WSRef amplicon_set_ref;
       WSRef sample_set_ref;
+      WSRef amplicon_set_ref;
 
       string data_epistemology;
       string epistemology_method;
       string description;
       string profile_type;
+      string profile_category;
 
     } ImportFuncProfileParams;
 
