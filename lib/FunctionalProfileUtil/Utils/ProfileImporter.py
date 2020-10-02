@@ -85,7 +85,7 @@ class ProfileImporter:
         info = self.dfu.save_objects({
             "id": workspace_id,
             "objects": [{
-                "type": "KBaseFunctionalProfile.FunctionalProfile",
+                "type": "KBaseProfile.FunctionalProfile",
                 "data": func_profile_data,
                 "name": func_profile_obj_name
             }]
@@ -337,29 +337,6 @@ class ProfileImporter:
         logging.info('Found existing profiles: {}'.format(existing_profile_names))
 
         return existing_profile_names
-
-    def _create_profile_data(self, profile_table, data_ids, staging_file=False):
-        profile = dict()
-
-        data_epistemology = profile_table.get('data_epistemology')
-
-        if data_epistemology:
-            data_epistemology = data_epistemology.lower()
-            if data_epistemology not in DATA_EPISTEMOLOGY:
-                err_msg = 'Data epistemology can only be one of {}'.format(DATA_EPISTEMOLOGY)
-                raise ValueError(err_msg)
-
-        profile['data_epistemology'] = data_epistemology
-        for key in ['epistemology_method', 'description']:
-            profile[key] = profile_table.get(key)
-
-        profile_file_path = profile_table.get('profile_file_path')
-        profile_data = self._build_profile_table(profile_file_path, data_ids,
-                                                 staging_file=staging_file)
-
-        profile['profile_data'] = profile_data
-
-        return profile
 
     def _build_profile_data(self, profiles, data_ids, staging_file=False):
         logging.info('start building profile data')
