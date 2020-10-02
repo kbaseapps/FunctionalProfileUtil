@@ -17,6 +17,7 @@ module FunctionalProfileUtil {
     /*
       profile_file_path - either a local file path or staging file path
       staging_file - profile_file_path provided in ProfileTable is a staging file path. default: False
+      build_report - build report for narrative. default: False
       profile_type - type of profile. e.g. amplicon, MG
       profile_category - category of profile. one of community or organism
 
@@ -35,6 +36,7 @@ module FunctionalProfileUtil {
       string func_profile_obj_name;
       string profile_file_path;
       bool staging_file;
+      bool build_report;
 
       WSRef original_matrix_ref;
       WSRef sample_set_ref;
@@ -50,13 +52,14 @@ module FunctionalProfileUtil {
 
     typedef structure {
       WSRef func_profile_ref;
+      string report_name;
+      WSRef report_ref;
     } ImportFuncProfileResults;
 
     funcdef import_func_profile(ImportFuncProfileParams params) returns (ImportFuncProfileResults returnVal) authentication required;
 
     typedef structure {
-      string report_name;
-      WSRef report_ref;
+
       WSRef func_profile_ref;
     } ReportResults;
 

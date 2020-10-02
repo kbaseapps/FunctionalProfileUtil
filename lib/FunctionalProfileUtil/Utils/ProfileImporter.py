@@ -207,7 +207,7 @@ class ProfileImporter:
     def _gen_func_profile_report(self, func_profile_ref, workspace_id):
         logging.info('start generating report')
 
-        objects_created = [{'ref': func_profile_ref, 'description': 'FunctionalProfile Object'}]
+        objects_created = [{'ref': func_profile_ref, 'description': 'Imported FunctionalProfile'}]
 
         output_html_files = self._generate_html_report(func_profile_ref)
 
@@ -271,18 +271,6 @@ class ProfileImporter:
 
         return profile_data
 
-    def _fetch_existing_profile_names(self, profile):
-
-        existing_profile_names = list()
-
-        custom_profile_names = profile.get('profiles', {}).keys()
-
-        existing_profile_names.extend(custom_profile_names)
-
-        logging.info('Found existing profiles: {}'.format(existing_profile_names))
-
-        return existing_profile_names
-
     def _gen_func_profile(self, original_matrix_ref, amplicon_set_ref, sample_set_ref,
                           profile_category, profile_file_path, metadata, staging_file=False):
 
@@ -313,7 +301,6 @@ class ProfileImporter:
 
         profile_data = self._build_profile_data(profile_file_path, item_ids,
                                                 staging_file=staging_file)
-
         func_profile_data['data'] = profile_data
 
         return func_profile_data
@@ -343,11 +330,14 @@ class ProfileImporter:
                                        'profile_category',
                                        'data_epistemology',
                                        'epistemology_method',
-                                       'description'))
+                                       'description',
+                                       'staging_file',
+                                       'build_report'))
 
         workspace_id = params.get('workspace_id')
         func_profile_obj_name = params.get('func_profile_obj_name')
         staging_file = params.get('staging_file', False)
+        build_report = params.get('build_report', False)
         profile_file_path = params.get('profile_file_path')
 
         original_matrix_ref = params.get('original_matrix_ref')
@@ -382,6 +372,10 @@ class ProfileImporter:
 
         returnVal = {'func_profile_ref': func_profile_ref}
 
+        if build_report:
+            report_output = self._gen_func_profile_report(func_profile_ref, workspace_id)
+            returnVal.update(report_output)
+
         return returnVal
 
     def narrative_import_func_profile(self, params):
@@ -391,35 +385,6 @@ class ProfileImporter:
                          'func_profile_obj_name': params.get('func_profile_obj_name'),
                          'original_matrix_ref': params.get('original_matrix_ref'),
                          'staging_file': True}
-
-        community_profile = {'sample_set_ref': params.get('sample_set_ref'),
-                             'profiles': dict()}
-        organism_profile = {'amplicon_set_ref': params.get('amplicon_set_ref'),
-                            'profiles': dict()}
-
-        input_community_profile = params.get('community_profile')
-        input_organism_profile = params.get('organism_profile')
-
-        for profile in input_community_profile:
-            profile_name = profile.get('community_profile_name')
-
-            community_profile['profiles'][profile_name] = {
-                            'data_epistemology': profile.get('community_data_epistemology'),
-                            'epistemology_method': profile.get('community_epistemology_method'),
-                            'description': profile.get('community_description'),
-                            'profile_file_path': profile.get('community_profile_file_path')}
-
-        for profile in input_organism_profile:
-            profile_name = profile.get('organism_profile_name')
-
-            organism_profile['profiles'][profile_name] = {
-                            'data_epistemology': profile.get('organism_data_epistemology'),
-                            'epistemology_method': profile.get('organism_epistemology_method'),
-                            'description': profile.get('organism_description'),
-                            'profile_file_path': profile.get('organism_profile_file_path')}
-
-        import_params['community_profile'] = community_profile
-        import_params['organism_profile'] = organism_profile
 
         func_profile_ref = self.import_func_profile(import_params)['func_profile_ref']
 
