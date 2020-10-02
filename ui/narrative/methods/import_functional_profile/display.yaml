@@ -44,31 +44,7 @@ parameters :
         long-hint  : |
             AmpliconSet object associated with organism profile
 
-    community_profile_name :
-        ui-name : |
-            Profile Name
-        short-hint : |
-            Profile Name
-        long-hint  : |
-            Profile Name
-
-    community_data_epistemology:
-        ui-name: |
-            Profile Epistemology
-        short-hint : |
-            how was data acquired. one of: measured, asserted, predicted
-        long-hint  : |
-            how was data acquired. one of: measured, asserted, predicted
-
-    community_epistemology_method:
-        ui-name: |
-            Epistemology Method
-        short-hint : |
-            method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
-        long-hint  : |
-            method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
-
-    community_profile_file_path:
+    profile_file_path:
         ui-name : |
             Profile File Path
         short-hint : |
@@ -76,23 +52,23 @@ parameters :
         long-hint  : |
             Recognized extensions for the input file is .xlsx or .csv
 
-    community_description:
-        ui-name: |
-            Description
-        short-hint : |
-            Description
-        long-hint  : |
-            Description
-
-    organism_profile_name :
+    profile_type:
         ui-name : |
-            Profile Name
+            Profile Type
         short-hint : |
-            Profile Name
+            type of profile. e.g. amplicon, MG
         long-hint  : |
-            Profile Name
+            type of profile. e.g. amplicon, MG
 
-    organism_data_epistemology:
+    profile_category:
+        ui-name : |
+            Profile Category
+        short-hint : |
+            category of profile. one of community or organism
+        long-hint  : |
+            category of profile. one of community or organism
+
+    data_epistemology:
         ui-name: |
             Profile Epistemology
         short-hint : |
@@ -100,7 +76,7 @@ parameters :
         long-hint  : |
             how was data acquired. one of: measured, asserted, predicted
 
-    organism_epistemology_method:
+    epistemology_method:
         ui-name: |
             Epistemology Method
         short-hint : |
@@ -108,15 +84,7 @@ parameters :
         long-hint  : |
             method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
 
-    organism_profile_file_path:
-        ui-name : |
-            Profile File Path
-        short-hint : |
-            Recognized extensions for the input file is .xlsx or .csv
-        long-hint  : |
-            Recognized extensions for the input file is .xlsx or .csv
-
-    organism_description:
+    description:
         ui-name: |
             Description
         short-hint : |
@@ -131,14 +99,6 @@ parameters :
             Output KBaseExperiments.FunctionalProfile object name
         long-hint  : |
             Output KBaseExperiments.FunctionalProfile object name
-
-parameter-groups :
-    community_profile:
-        ui-name : Community Profile
-        short-hint :  Community Profile
-    organism_profile:
-        ui-name : Organism Profile
-        short-hint :  Organism Profile
 
 description : |
     <p> Import a CSV, Excel or TSV file from your staging area into your Narrative as an FunctionalProfile data object </p>

@@ -14,6 +14,8 @@ from installed_clients.kb_GenericsReportClient import kb_GenericsReport
 from FunctionalProfileUtil.Utils.SampleServiceUtil import SampleServiceUtil
 
 DATA_EPISTEMOLOGY = ['measured', 'asserted', 'predicted']
+PROFILE_CATEGORY = ['community',  'organism']
+PROFILE_TYPE = ['amplicon', 'mg']
 
 
 class ProfileImporter:
@@ -93,134 +95,77 @@ class ProfileImporter:
 
         return "%s/%s/%s" % (info[6], info[0], info[4])
 
-    def _generate_heatmap(self, data, output_directory, profile_name):
+    def _generate_visualization_content(self, func_profile_ref, output_directory):
+        func_profile_data = self.dfu.get_objects(
+                                            {'object_refs': [func_profile_ref]})['data'][0]['data']
 
+        data = func_profile_data.get('data')
         data_df = pd.DataFrame(data['values'],
                                index=data['row_ids'], columns=data['col_ids'])
-        tsv_file_path = os.path.join(output_directory, 'heatmap_data_{}_{}.tsv'.format(
-                                                                    profile_name,
+
+        data_df.fillna(0, inplace=True)
+        tsv_file_path = os.path.join(output_directory, 'heatmap_data_{}.tsv'.format(
                                                                     str(uuid.uuid4())))
         data_df.to_csv(tsv_file_path)
         heatmap_dir = self.report_util.build_heatmap_html({
                                             'tsv_file_path': tsv_file_path,
                                             'cluster_data': True})['html_dir']
 
-        return heatmap_dir
-
-    def _generate_visualization_content(self, func_profile_ref, output_directory):
-        func_profile_data = self.dfu.get_objects(
-                                            {'object_refs': [func_profile_ref]})['data'][0]['data']
-
-        community_profile = func_profile_data.get('community_profile', dict())
-        organism_profile = func_profile_data.get('organism_profile', dict())
-
-        community_profile_names = self._fetch_existing_profile_names(community_profile)
-        organism_profile_names = self._fetch_existing_profile_names(organism_profile)
-
-        community_profile_heatmap = dict()
-        if community_profile:
-            profiles = community_profile.get('profiles')
-            for profile_name, profile_table in profiles.items():
-                data = profile_table.get('profile_data')
-                heatmap_dir = self._generate_heatmap(data, output_directory, profile_name)
-                community_profile_heatmap[profile_name] = heatmap_dir
-
-        organism_profile_heatmap = dict()
-        if organism_profile:
-            profiles = organism_profile.get('profiles')
-            for profile_name, profile_table in profiles.items():
-                data = profile_table.get('profile_data')
-                heatmap_dir = self._generate_heatmap(data, output_directory, profile_name)
-                organism_profile_heatmap[profile_name] = heatmap_dir
+        row_data_summary = data_df.T.describe().to_string()
+        col_data_summary = data_df.describe().to_string()
 
         tab_def_content = ''
         tab_content = ''
 
-        # build profile summary page
-        viewer_name = 'profile_summary'
+        # build data summary page
+        viewer_name = 'data_summary'
         tab_def_content += '''\n<div class="tab">\n'''
         tab_def_content += '''\n<button class="tablinks" '''
         tab_def_content += '''onclick="openTab(event, '{}')"'''.format(viewer_name)
         tab_def_content += ''' id="defaultOpen"'''
-        tab_def_content += '''>Functional Porfile Summary</button>\n'''
+        tab_def_content += '''>Profile Aggregating Statistic</button>\n'''
 
-        tab_content += '''\n<div id="{}" class="tabcontent" style="overflow:auto">'''.format(
-                                                                                    viewer_name)
-
-        tab_content += '''\n<h5>Total Profile Size: {}</h5>'''.format(
-                                        len(community_profile_names) + len(organism_profile_names))
-
+        tab_content += '''\n<div id="{}" class="tabcontent" style="overflow:auto">'''.format(viewer_name)
+        tab_content += '''\n<h5>Profile Size: {} x {}</h5>'''.format(len(data_df.index),
+                                                                     len(data_df.columns))
+        tab_content += '''\n<h5>Row Aggregating Statistic</h5>'''
+        html = '''\n<pre class="tab">''' + str(row_data_summary).replace("\n", "<br>") + "</pre>"
+        tab_content += html
         tab_content += '''\n<br>'''
         tab_content += '''\n<hr style="height:2px;border-width:0;color:gray;background-color:gray">'''
         tab_content += '''\n<br>'''
-
-        if community_profile_names:
-            tab_content += '''\n<h5>Community Profile: {}</h5>'''.format(
-                                                                ', '.join(community_profile_names))
-        else:
-            tab_content += '''\n<h5>Community Profile: (empty)</h5>'''
-
-        if organism_profile_names:
-            tab_content += '''\n<h5>Organism Profile: {}</h5>'''.format(
-                                                                ', '.join(organism_profile_names))
-        else:
-            tab_content += '''\n<h5>Organism Profile: (empty)</h5>'''
+        tab_content += '''\n<h5>Column Aggregating Statistic</h5>'''
+        html = '''\n<pre class="tab">''' + str(col_data_summary).replace("\n", "<br>") + "</pre>"
+        tab_content += html
         tab_content += '\n</div>\n'
 
-        # build profile heatmap pages
-        if community_profile_heatmap:
-            for profile_name, heatmap_dir in community_profile_heatmap.items():
-                viewer_name = 'CommProfileViewer_{}'.format(profile_name)
-                tab_def_content += '''\n<button class="tablinks" '''
-                tab_def_content += '''onclick="openTab(event, '{}')"'''.format(viewer_name)
-                tab_def_content += '''>{} (Community)</button>\n'''.format(profile_name)
+        # build profile heatmap page
+        viewer_name = 'ProfileHeatmapViewer'
+        tab_def_content += '''\n<button class="tablinks" '''
+        tab_def_content += '''onclick="openTab(event, '{}')"'''.format(viewer_name)
+        tab_def_content += '''>Profile Heatmap</button>\n'''
 
-                heatmap_report_files = os.listdir(heatmap_dir)
-                heatmap_index_page = None
-                for heatmap_report_file in heatmap_report_files:
-                    if heatmap_report_file.endswith('.html'):
-                        heatmap_index_page = heatmap_report_file
-                    shutil.copy2(os.path.join(heatmap_dir, heatmap_report_file),
-                                 output_directory)
+        heatmap_report_files = os.listdir(heatmap_dir)
 
-                if heatmap_index_page:
-                    tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
-                    tab_content += '\n<iframe height="900px" width="100%" '
-                    tab_content += 'src="{}" '.format(heatmap_index_page)
-                    tab_content += 'style="border:none;"></iframe>'
-                    tab_content += '\n</div>\n'
-                else:
-                    tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
-                    tab_content += '''\n<p style="color:red;" >'''
-                    tab_content += '''Heatmap is too large to be displayed.</p>\n'''
-                    tab_content += '\n</div>\n'
+        heatmap_index_page = None
+        for heatmap_report_file in heatmap_report_files:
+            if heatmap_report_file.endswith('.html'):
+                heatmap_index_page = heatmap_report_file
 
-        if organism_profile_heatmap:
-            for profile_name, heatmap_dir in organism_profile_heatmap.items():
-                viewer_name = 'OrgProfileViewer_{}'.format(profile_name)
-                tab_def_content += '''\n<button class="tablinks" '''
-                tab_def_content += '''onclick="openTab(event, '{}')"'''.format(viewer_name)
-                tab_def_content += '''>{} (Organism)</button>\n'''.format(profile_name)
+            shutil.copy2(os.path.join(heatmap_dir, heatmap_report_file),
+                         output_directory)
 
-                heatmap_report_files = os.listdir(heatmap_dir)
-                heatmap_index_page = None
-                for heatmap_report_file in heatmap_report_files:
-                    if heatmap_report_file.endswith('.html'):
-                        heatmap_index_page = heatmap_report_file
-                    shutil.copy2(os.path.join(heatmap_dir, heatmap_report_file),
-                                 output_directory)
-
-                if heatmap_index_page:
-                    tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
-                    tab_content += '\n<iframe height="900px" width="100%" '
-                    tab_content += 'src="{}" '.format(heatmap_index_page)
-                    tab_content += 'style="border:none;"></iframe>'
-                    tab_content += '\n</div>\n'
-                else:
-                    tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
-                    tab_content += '''\n<p style="color:red;" >'''
-                    tab_content += '''Heatmap is too large to be displayed.</p>\n'''
-                    tab_content += '\n</div>\n'
+        if heatmap_index_page:
+            tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
+            tab_content += '\n<iframe height="900px" width="100%" '
+            tab_content += 'src="{}" '.format(heatmap_index_page)
+            tab_content += 'style="border:none;"></iframe>'
+            tab_content += '\n</div>\n'
+        else:
+            tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
+            tab_content += '''\n<p style="color:red;" >'''
+            tab_content += '''Heatmap is too large to be displayed.</p>\n'''
+            tab_content += '\n</div>\n'
 
         tab_def_content += '\n</div>\n'
         return tab_def_content + tab_content
@@ -262,7 +207,7 @@ class ProfileImporter:
     def _gen_func_profile_report(self, func_profile_ref, workspace_id):
         logging.info('start generating report')
 
-        objects_created = [{'ref': func_profile_ref, 'description': 'FunctionalProfile Object'}]
+        objects_created = [{'ref': func_profile_ref, 'description': 'Imported FunctionalProfile'}]
 
         output_html_files = self._generate_html_report(func_profile_ref)
 
@@ -291,7 +236,7 @@ class ProfileImporter:
 
         return amplicons.keys()
 
-    def _build_profile_table(self, profile_file_path, data_ids, staging_file=False):
+    def _build_profile_data(self, profile_file_path, item_ids, staging_file=False):
 
         if not profile_file_path:
             raise ValueError('Missing profile file path')
@@ -306,13 +251,13 @@ class ProfileImporter:
         df = self._file_to_df(profile_file_path)
 
         # check profile file has all item ids from sample/amplicon set object
-        unmatched_ids = set(data_ids) - set(df.columns)
+        unmatched_ids = set(item_ids) - set(df.columns)
         if unmatched_ids:
             msg = 'Found some unmatched set data ids in profile file columns\n{}'.format(
                                                                                     unmatched_ids)
             logging.warning(msg)
             df = df.T
-            unmatched_ids = set(data_ids) - set(df.columns)
+            unmatched_ids = set(item_ids) - set(df.columns)
             if unmatched_ids:
                 msg = 'Found some unmatched set data ids in profile file rows\n{}'.format(
                                                                                     unmatched_ids)
@@ -326,87 +271,37 @@ class ProfileImporter:
 
         return profile_data
 
-    def _fetch_existing_profile_names(self, profile):
+    def _gen_func_profile(self, original_matrix_ref, amplicon_set_ref, sample_set_ref,
+                          profile_category, profile_file_path, metadata, staging_file=False):
 
-        existing_profile_names = list()
-
-        custom_profile_names = profile.get('profiles', {}).keys()
-
-        existing_profile_names.extend(custom_profile_names)
-
-        logging.info('Found existing profiles: {}'.format(existing_profile_names))
-
-        return existing_profile_names
-
-    def _build_profile_data(self, profiles, data_ids, staging_file=False):
-        logging.info('start building profile data')
-
-        gen_profile_data = dict()
-        for profile_name, profile_table in profiles.items():
-
-            data_epistemology = profile_table.get('data_epistemology')
-
-            if data_epistemology:
-                data_epistemology = data_epistemology.lower()
-                if data_epistemology not in DATA_EPISTEMOLOGY:
-                    err_msg = 'Data epistemology can only be one of {}'.format(DATA_EPISTEMOLOGY)
-                    raise ValueError(err_msg)
-
-            epistemology_method = profile_table.get('epistemology_method')
-            description = profile_table.get('description')
-            profile_file_path = profile_table.get('profile_file_path')
-
-            logging.info('start building profile table for {}'.format(profile_name))
-            profile_data = self._build_profile_table(profile_file_path, data_ids,
-                                                     staging_file=staging_file)
-
-            if not gen_profile_data.get('profiles'):
-                gen_profile_data['profiles'] = dict()
-            gen_profile_data['profiles'][profile_name] = {
-                                                    'data_epistemology': data_epistemology,
-                                                    'epistemology_method': epistemology_method,
-                                                    'description': description,
-                                                    'profile_data': profile_data}
-
-        return gen_profile_data
-
-    def _gen_func_profile(self, original_matrix_ref, community_profile, organism_profile,
-                          staging_file=False):
         func_profile_data = dict()
+
+        func_profile_data.update(metadata)
 
         if not original_matrix_ref:
             raise ValueError('Missing original matrix object reference')
         func_profile_data['original_matrix_ref'] = original_matrix_ref
 
-        if community_profile:
+        if profile_category not in PROFILE_CATEGORY:
+            raise ValueError('Please choose community or organism as profile category')
+
+        if profile_category == 'community':
             logging.info('start building community profile')
-            sample_set_ref = community_profile.get('sample_set_ref')
             if not sample_set_ref:
-                raise ValueError('Missing sample_set_ref from community profile')
-            data_ids = self.sampleservice_util.get_ids_from_samples(sample_set_ref)
+                raise ValueError('Please provide sample set object for community profile')
+            func_profile_data['sample_set_ref'] = sample_set_ref
+            item_ids = self.sampleservice_util.get_ids_from_samples(sample_set_ref)
 
-            comm_profile = self._build_profile_data(community_profile.get('profiles'),
-                                                    data_ids,
-                                                    staging_file=staging_file)
-            comm_profile['sample_set_ref'] = sample_set_ref
-
-            func_profile_data['community_profile'] = comm_profile
-
-        if organism_profile:
+        if profile_category == 'organism':
             logging.info('start building organism profile')
-            amplicon_set_ref = organism_profile.get('amplicon_set_ref')
             if not amplicon_set_ref:
-                raise ValueError('Missing amplicon_set_ref from organism profile')
+                raise ValueError('Please provide amplicon set object for organism profile')
+            func_profile_data['amplicon_set_ref'] = amplicon_set_ref
+            item_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
 
-            data_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
-
-            org_profile = self._build_profile_data(organism_profile.get('profiles'),
-                                                   data_ids,
-                                                   staging_file=staging_file)
-
-            org_profile['amplicon_set_ref'] = amplicon_set_ref
-
-            func_profile_data['organism_profile'] = org_profile
+        profile_data = self._build_profile_data(profile_file_path, item_ids,
+                                                staging_file=staging_file)
+        func_profile_data['data'] = profile_data
 
         return func_profile_data
 
@@ -427,19 +322,48 @@ class ProfileImporter:
 
         self._validate_params(params, ('workspace_id',
                                        'func_profile_obj_name',
-                                       'original_matrix_ref'))
+                                       'original_matrix_ref',
+                                       'profile_file_path'),
+                                      ('amplicon_set_ref',
+                                       'sample_set_ref',
+                                       'profile_type',
+                                       'profile_category',
+                                       'data_epistemology',
+                                       'epistemology_method',
+                                       'description',
+                                       'staging_file',
+                                       'build_report'))
 
         workspace_id = params.get('workspace_id')
         func_profile_obj_name = params.get('func_profile_obj_name')
         staging_file = params.get('staging_file', False)
+        build_report = params.get('build_report', False)
+        profile_file_path = params.get('profile_file_path')
 
         original_matrix_ref = params.get('original_matrix_ref')
-        community_profile = params.get('community_profile')
-        organism_profile = params.get('organism_profile')
+        amplicon_set_ref = params.get('amplicon_set_ref')
+        sample_set_ref = params.get('sample_set_ref')
+
+        profile_category = params.get('profile_category', '').lower()
+        profile_type = params.get('profile_type', '').lower()
+
+        metadata = dict()
+        meta_fields = ['profile_category', 'profile_type',
+                       'data_epistemology', 'epistemology_method', 'description']
+        for meta_field in meta_fields:
+            field_value = params.get(meta_field)
+            if field_value:
+                metadata[meta_field] = field_value
+
+        if profile_type not in PROFILE_TYPE:
+            raise ValueError('Please choose one of {} as profile type'.format(PROFILE_TYPE))
 
         func_profile_data = self._gen_func_profile(original_matrix_ref,
-                                                   community_profile,
-                                                   organism_profile,
+                                                   amplicon_set_ref,
+                                                   sample_set_ref,
+                                                   profile_category,
+                                                   profile_file_path,
+                                                   metadata,
                                                    staging_file=staging_file)
 
         func_profile_ref = self._save_func_profile(workspace_id,
@@ -448,50 +372,8 @@ class ProfileImporter:
 
         returnVal = {'func_profile_ref': func_profile_ref}
 
-        return returnVal
-
-    def narrative_import_func_profile(self, params):
-
-        workspace_id = params.get('workspace_id')
-        import_params = {'workspace_id': workspace_id,
-                         'func_profile_obj_name': params.get('func_profile_obj_name'),
-                         'original_matrix_ref': params.get('original_matrix_ref'),
-                         'staging_file': True}
-
-        community_profile = {'sample_set_ref': params.get('sample_set_ref'),
-                             'profiles': dict()}
-        organism_profile = {'amplicon_set_ref': params.get('amplicon_set_ref'),
-                            'profiles': dict()}
-
-        input_community_profile = params.get('community_profile')
-        input_organism_profile = params.get('organism_profile')
-
-        for profile in input_community_profile:
-            profile_name = profile.get('community_profile_name')
-
-            community_profile['profiles'][profile_name] = {
-                            'data_epistemology': profile.get('community_data_epistemology'),
-                            'epistemology_method': profile.get('community_epistemology_method'),
-                            'description': profile.get('community_description'),
-                            'profile_file_path': profile.get('community_profile_file_path')}
-
-        for profile in input_organism_profile:
-            profile_name = profile.get('organism_profile_name')
-
-            organism_profile['profiles'][profile_name] = {
-                            'data_epistemology': profile.get('organism_data_epistemology'),
-                            'epistemology_method': profile.get('organism_epistemology_method'),
-                            'description': profile.get('organism_description'),
-                            'profile_file_path': profile.get('organism_profile_file_path')}
-
-        import_params['community_profile'] = community_profile
-        import_params['organism_profile'] = organism_profile
-
-        func_profile_ref = self.import_func_profile(import_params)['func_profile_ref']
-
-        returnVal = {'func_profile_ref': func_profile_ref}
-
-        report_output = self._gen_func_profile_report(func_profile_ref, workspace_id)
-        returnVal.update(report_output)
+        if build_report:
+            report_output = self._gen_func_profile_report(func_profile_ref, workspace_id)
+            returnVal.update(report_output)
 
         return returnVal
