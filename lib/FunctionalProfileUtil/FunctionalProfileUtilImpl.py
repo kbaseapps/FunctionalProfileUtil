@@ -24,7 +24,7 @@ class FunctionalProfileUtil:
     ######################################### noqa
     VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/FunctionalProfileUtil.git"
-    GIT_COMMIT_HASH = "366868a59b0f75bddaabb61631bc9887d35f81ab"
+    GIT_COMMIT_HASH = "78e5d86b134cec85b61b9de836d4fc907bced288"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -51,8 +51,9 @@ class FunctionalProfileUtil:
            (profile_file_path - either a local file path or staging file path
            staging_file - profile_file_path provided in ProfileTable is a
            staging file path. default: False profile_type - type of profile.
-           one of community or organism one of: sample_set_ref - associated
-           with community_profile amplicon_set_ref - associated with
+           e.g. amplicon, MG profile_category - category of profile. one of
+           community or organism one of: sample_set_ref - associated with
+           community_profile amplicon_set_ref - associated with
            organism_profile optional arguments: original_matrix_ref -
            original matrix object associated with this functional profile
            object data_epistemology - how was data acquired. one of:
@@ -63,12 +64,13 @@ class FunctionalProfileUtil:
            String, parameter "profile_file_path" of String, parameter
            "staging_file" of type "bool" (A boolean - 0 for false, 1 for
            true. @range (0, 1)), parameter "original_matrix_ref" of type
-           "WSRef" (Ref to a WS object @id ws), parameter "amplicon_set_ref"
-           of type "WSRef" (Ref to a WS object @id ws), parameter
-           "sample_set_ref" of type "WSRef" (Ref to a WS object @id ws),
+           "WSRef" (Ref to a WS object @id ws), parameter "sample_set_ref" of
+           type "WSRef" (Ref to a WS object @id ws), parameter
+           "amplicon_set_ref" of type "WSRef" (Ref to a WS object @id ws),
            parameter "data_epistemology" of String, parameter
            "epistemology_method" of String, parameter "description" of
-           String, parameter "profile_type" of String
+           String, parameter "profile_type" of String, parameter
+           "profile_category" of String
         :returns: instance of type "ImportFuncProfileResults" -> structure:
            parameter "func_profile_ref" of type "WSRef" (Ref to a WS object
            @id ws)
