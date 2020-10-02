@@ -393,74 +393,6 @@ class ProfileImporter:
 
         return gen_profile_data
 
-    def _update_func_profile(self, func_profile_data, community_profile, organism_profile,
-                             staging_file=False, upsert=False):
-
-        ori_matrix_ref = func_profile_data['original_matrix_ref']
-        ori_community_profile = func_profile_data.get('community_profile', dict())
-        ori_organism_profile = func_profile_data.get('organism_profile', dict())
-
-        ori_community_profile_names = self._fetch_existing_profile_names(ori_community_profile)
-        ori_organism_profile_names = self._fetch_existing_profile_names(ori_organism_profile)
-
-        for profile_name, profile_table in community_profile.items():
-            logging.info('Start updating community profile')
-            if ori_community_profile and profile_name in ori_community_profile_names and not upsert:
-                error_msg = 'Profile [{}] already exists. Please set upsert to True.'.format(
-                                                                                    profile_name)
-                raise ValueError(error_msg)
-
-            if not ori_community_profile:
-                matrix_data = self.dfu.get_objects({'object_refs': [ori_matrix_ref]})['data'][0]['data']
-                sample_set_ref = matrix_data.get('sample_set_ref')
-                if not sample_set_ref:
-                    raise ValueError('Cannot find sample set assocaited with original matrix')
-                func_profile_data['community_profile'] = {'sample_set_ref': sample_set_ref}
-
-                ori_community_profile = func_profile_data.get('community_profile')
-
-            sample_set_ref = ori_community_profile.get('sample_set_ref')
-            data_ids = self.sampleservice_util.get_ids_from_samples(sample_set_ref)
-            profile_data = self._create_profile_data(profile_table, data_ids,
-                                                     staging_file=staging_file)
-
-            profiles = ori_community_profile.get('profiles')
-            if profiles:
-                profiles[profile_name] = profile_data
-            else:
-                # create profiles
-                ori_community_profile['profiles'] = dict()
-                ori_community_profile['profiles'][profile_name] = profile_data
-
-        for profile_name, profile_table in organism_profile.items():
-            logging.info('Start updating organism profile')
-            if ori_organism_profile and profile_name in ori_organism_profile_names and not upsert:
-                raise ValueError('Profile [{}] already exists. Please set upsert to True.')
-
-            if not ori_organism_profile:
-                matrix_data = self.dfu.get_objects({'object_refs': [ori_matrix_ref]})['data'][0]['data']
-                amplicon_set_ref = matrix_data.get('amplicon_set_ref')
-                if not amplicon_set_ref:
-                    raise ValueError('Cannot find amplicon set assocaited with original matrix')
-                func_profile_data['organism_profile'] = {'amplicon_set_ref': amplicon_set_ref}
-
-                ori_organism_profile = func_profile_data.get('organism_profile')
-
-            amplicon_set_ref = ori_organism_profile.get('amplicon_set_ref')
-            data_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
-            profile_data = self._create_profile_data(profile_table, data_ids,
-                                                     staging_file=staging_file)
-
-            profiles = ori_organism_profile.get('profiles')
-            if profiles:
-                profiles[profile_name] = profile_data
-            else:
-                # create profiles
-                ori_organism_profile['profiles'] = dict()
-                ori_organism_profile['profiles'][profile_name] = profile_data
-
-        return func_profile_data
-
     def _gen_func_profile(self, original_matrix_ref, community_profile, organism_profile,
                           staging_file=False):
         func_profile_data = dict()
@@ -541,40 +473,6 @@ class ProfileImporter:
 
         return returnVal
 
-    def insert_func_profile(self, params):
-
-        logging.info("start updating FunctionalProfile with params:{}".format(params))
-
-        self._validate_params(params, ('workspace_id',
-                                       'functional_profile_ref'))
-
-        workspace_id = params.get('workspace_id')
-        func_profile_ref = params.get('functional_profile_ref')
-        staging_file = params.get('staging_file', False)
-        upsert = params.get('upsert', False)
-
-        community_profile = params.get('community_profile', dict())
-        organism_profile = params.get('organism_profile', dict())
-
-        func_profile_obj = self.dfu.get_objects({'object_refs': [func_profile_ref]})['data'][0]
-        func_profile_info = func_profile_obj['info']
-        func_profile_obj_name = func_profile_info[1]
-        func_profile_data = func_profile_obj['data']
-
-        func_profile_data = self._update_func_profile(func_profile_data,
-                                                      community_profile,
-                                                      organism_profile,
-                                                      staging_file=staging_file,
-                                                      upsert=upsert)
-
-        func_profile_ref = self._save_func_profile(workspace_id,
-                                                   func_profile_data,
-                                                   func_profile_obj_name)
-
-        returnVal = {'func_profile_ref': func_profile_ref}
-
-        return returnVal
-
     def narrative_import_func_profile(self, params):
 
         workspace_id = params.get('workspace_id')
@@ -613,50 +511,6 @@ class ProfileImporter:
         import_params['organism_profile'] = organism_profile
 
         func_profile_ref = self.import_func_profile(import_params)['func_profile_ref']
-
-        returnVal = {'func_profile_ref': func_profile_ref}
-
-        report_output = self._gen_func_profile_report(func_profile_ref, workspace_id)
-        returnVal.update(report_output)
-
-        return returnVal
-
-    def narrative_insert_func_profile(self, params):
-
-        workspace_id = params.get('workspace_id')
-        insert_params = {'workspace_id': workspace_id,
-                         'functional_profile_ref': params.get('functional_profile_ref'),
-                         'upsert': params.get('upsert', False),
-                         'staging_file': True}
-
-        community_profile = dict()
-        organism_profile = dict()
-
-        input_community_profile = params.get('community_profile')
-        input_organism_profile = params.get('organism_profile')
-
-        for profile in input_community_profile:
-            profile_name = profile.get('community_profile_name')
-
-            community_profile[profile_name] = {
-                            'data_epistemology': profile.get('community_data_epistemology'),
-                            'epistemology_method': profile.get('community_epistemology_method'),
-                            'description': profile.get('community_description'),
-                            'profile_file_path': profile.get('community_profile_file_path')}
-
-        for profile in input_organism_profile:
-            profile_name = profile.get('organism_profile_name')
-
-            organism_profile[profile_name] = {
-                            'data_epistemology': profile.get('organism_data_epistemology'),
-                            'epistemology_method': profile.get('organism_epistemology_method'),
-                            'description': profile.get('organism_description'),
-                            'profile_file_path': profile.get('organism_profile_file_path')}
-
-        insert_params['community_profile'] = community_profile
-        insert_params['organism_profile'] = organism_profile
-
-        func_profile_ref = self.insert_func_profile(insert_params)['func_profile_ref']
 
         returnVal = {'func_profile_ref': func_profile_ref}
 
