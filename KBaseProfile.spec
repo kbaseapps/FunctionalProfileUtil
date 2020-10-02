@@ -41,7 +41,7 @@ module KBaseProfile {
       amplicon_set_ref - associated with organism_profile
 
       data_epistemology - how was data acquired. one of: measured, asserted, predicted
-      epistemology_method - method/program to be used to acquired data. e.g. FAPROTAX, PICRUSt2
+      epistemology_method - method/program to be used to acquire data. e.g. FAPROTAX, PICRUSt2
       profile_type - type of profile. one of community or organism
 
       @optional original_matrix_ref sample_set_ref amplicon_set_ref
