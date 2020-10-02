@@ -24,7 +24,7 @@ class FunctionalProfileUtil:
     ######################################### noqa
     VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/FunctionalProfileUtil.git"
-    GIT_COMMIT_HASH = "c6f3b8f8f0cbcf19a79a2134bd17e287901c1d96"
+    GIT_COMMIT_HASH = "366868a59b0f75bddaabb61631bc9887d35f81ab"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -48,38 +48,27 @@ class FunctionalProfileUtil:
     def import_func_profile(self, ctx, params):
         """
         :param params: instance of type "ImportFuncProfileParams"
-           (staging_file - profile_file_path provided in ProfileTable is a
-           staging file path. default: False) -> structure: parameter
+           (profile_file_path - either a local file path or staging file path
+           staging_file - profile_file_path provided in ProfileTable is a
+           staging file path. default: False profile_type - type of profile.
+           one of community or organism one of: sample_set_ref - associated
+           with community_profile amplicon_set_ref - associated with
+           organism_profile optional arguments: original_matrix_ref -
+           original matrix object associated with this functional profile
+           object data_epistemology - how was data acquired. one of:
+           measured, asserted, predicted epistemology_method - method/program
+           to be used to acquired data. e.g. FAPROTAX, PICRUSt2 description -
+           description for the profile) -> structure: parameter
            "workspace_id" of Long, parameter "func_profile_obj_name" of
-           String, parameter "staging_file" of type "bool" (A boolean - 0 for
-           false, 1 for true. @range (0, 1)), parameter "original_matrix_ref"
+           String, parameter "profile_file_path" of String, parameter
+           "staging_file" of type "bool" (A boolean - 0 for false, 1 for
+           true. @range (0, 1)), parameter "original_matrix_ref" of type
+           "WSRef" (Ref to a WS object @id ws), parameter "amplicon_set_ref"
            of type "WSRef" (Ref to a WS object @id ws), parameter
-           "community_profile" of type "CommProfile" (community based
-           functional profile sample_set_ref - sample set associated with
-           profile.) -> structure: parameter "sample_set_ref" of type "WSRef"
-           (Ref to a WS object @id ws), parameter "profiles" of mapping from
-           type "profile_name" to type "ProfileTable" (profile_file_path -
-           either a local file path or staging file path optional arguments:
-           data_epistemology - how was data acquired. one of: measured,
-           asserted, predicted epistemology_method - method/program to be
-           used to acquired data. e.g. FAPROTAX, PICRUSt2 description -
-           description for the profile) -> structure: parameter
-           "data_epistemology" of String, parameter "epistemology_method" of
-           String, parameter "description" of String, parameter
-           "profile_file_path" of String, parameter "organism_profile" of
-           type "OrgProfile" (organism based functional profile
-           amplicon_set_ref - amplicon set associated with profile.) ->
-           structure: parameter "amplicon_set_ref" of type "WSRef" (Ref to a
-           WS object @id ws), parameter "profiles" of mapping from type
-           "profile_name" to type "ProfileTable" (profile_file_path - either
-           a local file path or staging file path optional arguments:
-           data_epistemology - how was data acquired. one of: measured,
-           asserted, predicted epistemology_method - method/program to be
-           used to acquired data. e.g. FAPROTAX, PICRUSt2 description -
-           description for the profile) -> structure: parameter
-           "data_epistemology" of String, parameter "epistemology_method" of
-           String, parameter "description" of String, parameter
-           "profile_file_path" of String
+           "sample_set_ref" of type "WSRef" (Ref to a WS object @id ws),
+           parameter "data_epistemology" of String, parameter
+           "epistemology_method" of String, parameter "description" of
+           String, parameter "profile_type" of String
         :returns: instance of type "ImportFuncProfileResults" -> structure:
            parameter "func_profile_ref" of type "WSRef" (Ref to a WS object
            @id ws)

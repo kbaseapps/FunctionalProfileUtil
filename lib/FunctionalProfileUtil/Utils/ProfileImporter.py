@@ -14,6 +14,7 @@ from installed_clients.kb_GenericsReportClient import kb_GenericsReport
 from FunctionalProfileUtil.Utils.SampleServiceUtil import SampleServiceUtil
 
 DATA_EPISTEMOLOGY = ['measured', 'asserted', 'predicted']
+PROFILE_TYPE = ['community',  'organism']
 
 
 class ProfileImporter:
@@ -432,14 +433,35 @@ class ProfileImporter:
         workspace_id = params.get('workspace_id')
         func_profile_obj_name = params.get('func_profile_obj_name')
         staging_file = params.get('staging_file', False)
+        profile_file_path = params.get('profile_file_path')
 
         original_matrix_ref = params.get('original_matrix_ref')
-        community_profile = params.get('community_profile')
-        organism_profile = params.get('organism_profile')
+
+        profile_type = params.get('profile_type', '').lower()
+        amplicon_set_ref = params.get('amplicon_set_ref')
+        sample_set_ref = params.get('sample_set_ref')
+
+        metadata = dict()
+        meta_fields = ['profile_type', 'data_epistemology', 'epistemology_method', 'description']
+        for meta_field in meta_fields:
+            field_value = params.get(meta_field)
+            if field_value:
+                metadata[meta_field] = field_value
+
+        if profile_type not in PROFILE_TYPE:
+            raise ValueError('Please choose community or organism as profile type')
+
+        if profile_type == 'community' and not sample_set_ref:
+            raise ValueError('Please provide sample set object for community profile')
+
+        if profile_type == 'organism' and not amplicon_set_ref:
+            raise ValueError('Please provide amplicon set object for organism profile')
 
         func_profile_data = self._gen_func_profile(original_matrix_ref,
-                                                   community_profile,
-                                                   organism_profile,
+                                                   amplicon_set_ref,
+                                                   sample_set_ref,
+                                                   profile_file_path,
+                                                   metadata,
                                                    staging_file=staging_file)
 
         func_profile_ref = self._save_func_profile(workspace_id,
