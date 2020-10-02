@@ -24,7 +24,7 @@ class FunctionalProfileUtil:
     ######################################### noqa
     VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/FunctionalProfileUtil.git"
-    GIT_COMMIT_HASH = "78e5d86b134cec85b61b9de836d4fc907bced288"
+    GIT_COMMIT_HASH = "9e7e450c14d286f791b5ff541734806f70132f89"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
@@ -50,8 +50,9 @@ class FunctionalProfileUtil:
         :param params: instance of type "ImportFuncProfileParams"
            (profile_file_path - either a local file path or staging file path
            staging_file - profile_file_path provided in ProfileTable is a
-           staging file path. default: False profile_type - type of profile.
-           e.g. amplicon, MG profile_category - category of profile. one of
+           staging file path. default: False build_report - build report for
+           narrative. default: False profile_type - type of profile. e.g.
+           amplicon, MG profile_category - category of profile. one of
            community or organism one of: sample_set_ref - associated with
            community_profile amplicon_set_ref - associated with
            organism_profile optional arguments: original_matrix_ref -
@@ -63,17 +64,19 @@ class FunctionalProfileUtil:
            "workspace_id" of Long, parameter "func_profile_obj_name" of
            String, parameter "profile_file_path" of String, parameter
            "staging_file" of type "bool" (A boolean - 0 for false, 1 for
-           true. @range (0, 1)), parameter "original_matrix_ref" of type
-           "WSRef" (Ref to a WS object @id ws), parameter "sample_set_ref" of
-           type "WSRef" (Ref to a WS object @id ws), parameter
-           "amplicon_set_ref" of type "WSRef" (Ref to a WS object @id ws),
-           parameter "data_epistemology" of String, parameter
+           true. @range (0, 1)), parameter "build_report" of type "bool" (A
+           boolean - 0 for false, 1 for true. @range (0, 1)), parameter
+           "original_matrix_ref" of type "WSRef" (Ref to a WS object @id ws),
+           parameter "sample_set_ref" of type "WSRef" (Ref to a WS object @id
+           ws), parameter "amplicon_set_ref" of type "WSRef" (Ref to a WS
+           object @id ws), parameter "data_epistemology" of String, parameter
            "epistemology_method" of String, parameter "description" of
            String, parameter "profile_type" of String, parameter
            "profile_category" of String
         :returns: instance of type "ImportFuncProfileResults" -> structure:
            parameter "func_profile_ref" of type "WSRef" (Ref to a WS object
-           @id ws)
+           @id ws), parameter "report_name" of String, parameter "report_ref"
+           of type "WSRef" (Ref to a WS object @id ws)
         """
         # ctx is the context object
         # return variables are: returnVal
@@ -84,27 +87,6 @@ class FunctionalProfileUtil:
         # At some point might do deeper type checking...
         if not isinstance(returnVal, dict):
             raise ValueError('Method import_func_profile return value ' +
-                             'returnVal is not type dict as required.')
-        # return the results
-        return [returnVal]
-
-    def narrative_import_func_profile(self, ctx, params):
-        """
-        :param params: instance of mapping from String to unspecified object
-        :returns: instance of type "ReportResults" -> structure: parameter
-           "report_name" of String, parameter "report_ref" of type "WSRef"
-           (Ref to a WS object @id ws), parameter "func_profile_ref" of type
-           "WSRef" (Ref to a WS object @id ws)
-        """
-        # ctx is the context object
-        # return variables are: returnVal
-        #BEGIN narrative_import_func_profile
-        returnVal = self.profile_importer.narrative_import_func_profile(params)
-        #END narrative_import_func_profile
-
-        # At some point might do deeper type checking...
-        if not isinstance(returnVal, dict):
-            raise ValueError('Method narrative_import_func_profile return value ' +
                              'returnVal is not type dict as required.')
         # return the results
         return [returnVal]

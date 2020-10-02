@@ -58,11 +58,4 @@ module FunctionalProfileUtil {
 
     funcdef import_func_profile(ImportFuncProfileParams params) returns (ImportFuncProfileResults returnVal) authentication required;
 
-    typedef structure {
-
-      WSRef func_profile_ref;
-    } ReportResults;
-
-    funcdef narrative_import_func_profile(mapping<string,UnspecifiedObject> params) returns (ReportResults returnVal) authentication required;
-
 };

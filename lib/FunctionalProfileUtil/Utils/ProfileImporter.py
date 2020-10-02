@@ -377,20 +377,3 @@ class ProfileImporter:
             returnVal.update(report_output)
 
         return returnVal
-
-    def narrative_import_func_profile(self, params):
-
-        workspace_id = params.get('workspace_id')
-        import_params = {'workspace_id': workspace_id,
-                         'func_profile_obj_name': params.get('func_profile_obj_name'),
-                         'original_matrix_ref': params.get('original_matrix_ref'),
-                         'staging_file': True}
-
-        func_profile_ref = self.import_func_profile(import_params)['func_profile_ref']
-
-        returnVal = {'func_profile_ref': func_profile_ref}
-
-        report_output = self._gen_func_profile_report(func_profile_ref, workspace_id)
-        returnVal.update(report_output)
-
-        return returnVal
