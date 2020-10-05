@@ -52,9 +52,9 @@ module KBaseProfile {
       @optional sample_set_ref amplicon_set_ref col_attributemapping_ref row_attributemapping_ref
       @optional data_epistemology epistemology_method description
 
-      @metadata ws original_matrix_ref as original_matrix_ref
-      @metadata ws sample_set as sample_set_ref
-      @metadata ws amplicon_set as amplicon_set_ref
+      @metadata ws original_matrix_ref as original_matrix
+      @metadata ws sample_set_ref as sample_set
+      @metadata ws amplicon_set_ref as amplicon_set
       @metadata ws col_attributemapping_ref as col_attribute_mapping
       @metadata ws row_attributemapping_ref as row_attribute_mapping
       @metadata ws length(data.row_ids) as row_count
