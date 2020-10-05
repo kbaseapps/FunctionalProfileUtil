@@ -50,7 +50,7 @@ module KBaseProfile {
       profile_category - category of profile. one of community or organism
 
       @optional sample_set_ref amplicon_set_ref col_attributemapping_ref row_attributemapping_ref
-      @optional data_epistemology epistemology_method description profile_type profile_category
+      @optional data_epistemology epistemology_method description
 
       @metadata ws original_matrix_ref as original_matrix_ref
       @metadata ws sample_set as sample_set_ref
