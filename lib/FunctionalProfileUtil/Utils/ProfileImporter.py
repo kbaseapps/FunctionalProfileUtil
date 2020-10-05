@@ -87,7 +87,7 @@ class ProfileImporter:
         info = self.dfu.save_objects({
             "id": workspace_id,
             "objects": [{
-                "type": "KBaseFunctionalProfile.FunctionalProfile",
+                "type": "KBaseProfile.FunctionalProfile",
                 "data": func_profile_data,
                 "name": func_profile_obj_name
             }]
