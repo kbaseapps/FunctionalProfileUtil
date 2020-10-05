@@ -28,22 +28,6 @@ parameters :
         long-hint  : |
             One of KBaseMatrices object
 
-    sample_set_ref :
-        ui-name : |
-            Sample Set Object
-        short-hint : |
-            SampleSet object associated with community profile
-        long-hint  : |
-            SampleSet object associated with community profile
-
-    amplicon_set_ref :
-        ui-name : |
-            Amplicon Set Object
-        short-hint : |
-            AmpliconSet object associated with organism profile
-        long-hint  : |
-            AmpliconSet object associated with organism profile
-
     profile_file_path:
         ui-name : |
             Profile File Path
