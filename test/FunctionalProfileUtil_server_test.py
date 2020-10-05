@@ -80,21 +80,24 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         return fake_object_ref
 
     def test_import_func_profile_fail(self):
+        fake_object_ref = self.createAnObject()
+
         with self.assertRaisesRegex(ValueError, "Required keys"):
             self.serviceImpl.import_func_profile(self.ctx, {})
 
         with self.assertRaisesRegex(ValueError, "Please choose one of"):
             params = {'workspace_id': self.wsId,
                       'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': '1/1/1',
+                      'original_matrix_ref': fake_object_ref,
                       'profile_file_path': 'profile_file_path',
-                      'profile_type': 'fake profile type'}
+                      'profile_type': 'fake profile type',
+                      'profile_category': 'organism'}
             self.serviceImpl.import_func_profile(self.ctx, params)
 
         with self.assertRaisesRegex(ValueError, "Please choose community or organism as profile category"):
             params = {'workspace_id': self.wsId,
                       'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': '1/1/1',
+                      'original_matrix_ref': fake_object_ref,
                       'profile_file_path': 'profile_file_path',
                       'profile_type': 'amplicon',
                       'profile_category': 'fake profile_category'}
@@ -103,21 +106,19 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Please provide sample set object for community profile"):
             params = {'workspace_id': self.wsId,
                       'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': '1/1/1',
+                      'original_matrix_ref': fake_object_ref,
                       'profile_file_path': 'profile_file_path',
                       'profile_type': 'amplicon',
-                      'profile_category': 'community',
-                      'sample_set_ref': None}
+                      'profile_category': 'community'}
             self.serviceImpl.import_func_profile(self.ctx, params)
 
         with self.assertRaisesRegex(ValueError, "Please provide amplicon set object for organism profile"):
             params = {'workspace_id': self.wsId,
                       'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': '1/1/1',
+                      'original_matrix_ref': fake_object_ref,
                       'profile_file_path': 'profile_file_path',
                       'profile_type': 'amplicon',
-                      'profile_category': 'organism',
-                      'amplicon_set_ref': None}
+                      'profile_category': 'organism'}
             self.serviceImpl.import_func_profile(self.ctx, params)
 
     def mock_save_objects(params):
@@ -126,6 +127,16 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         obj_data = params['objects'][0]['data']
 
         return [[obj_data, None, None, None, None, None, None]]
+
+    def mock_get_objects(self, params):
+        print('Mocking DataFileUtilClient.get_objects')
+
+        fake_object_ref = params['object_refs'][0]
+
+        obj_data = {'sample_set_ref': fake_object_ref,
+                    'amplicon_set_ref': fake_object_ref}
+
+        return {'data': [{'data': obj_data}]}
 
     @patch.object(SampleServiceUtil, "get_ids_from_samples", return_value=DATA_IDS)
     @patch.object(ProfileImporter, "_get_ids_from_amplicon_set", return_value=DATA_IDS)
@@ -136,19 +147,20 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
         profile_file_path = os.path.join('data', 'func_table.tsv')
+        fake_object_ref = self.createAnObject()
 
         # import community profile
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
-                  'original_matrix_ref': '1/1/1',
+                  'original_matrix_ref': fake_object_ref,
                   'profile_file_path': profile_file_path,
-                  'sample_set_ref': '1/1/1',
                   'profile_type': 'Amplicon',
                   'profile_category': 'community',
                   'data_epistemology': 'predicted',
                   'epistemology_method': 'FAPROTAX'}
-        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
-                                                                params)[0]['func_profile_ref']
+        with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
+            func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                    params)[0]['func_profile_ref']
 
         func_profile_data_str = 'null'.join(
                                 func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
@@ -166,15 +178,15 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         # import organism profile
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
-                  'original_matrix_ref': '1/1/1',
+                  'original_matrix_ref': fake_object_ref,
                   'profile_file_path': profile_file_path,
-                  'amplicon_set_ref': '1/1/1',
                   'profile_type': 'Amplicon',
                   'profile_category': 'organism',
                   'data_epistemology': 'predicted',
                   'epistemology_method': 'FAPROTAX'}
-        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
-                                                                params)[0]['func_profile_ref']
+        with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
+            func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                    params)[0]['func_profile_ref']
 
         func_profile_data_str = 'null'.join(
                                 func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
@@ -205,12 +217,14 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': fake_object_ref,
                   'profile_file_path': profile_file_path,
-                  'amplicon_set_ref': fake_object_ref,
                   'profile_type': 'Amplicon',
                   'profile_category': 'organism',
                   'data_epistemology': 'predicted',
                   'epistemology_method': 'FAPROTAX'}
-        func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+
+        with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
+            func_profile_ref = self.serviceImpl.import_func_profile(
+                                                                self.ctx,
                                                                 params)[0]['func_profile_ref']
 
         func_profile_data = self.dfu.get_objects(

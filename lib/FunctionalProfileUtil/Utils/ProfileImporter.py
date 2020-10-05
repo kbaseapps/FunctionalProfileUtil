@@ -277,9 +277,6 @@ class ProfileImporter:
         func_profile_data = dict()
 
         func_profile_data.update(metadata)
-
-        if not original_matrix_ref:
-            raise ValueError('Missing original matrix object reference')
         func_profile_data['original_matrix_ref'] = original_matrix_ref
 
         if profile_category not in PROFILE_CATEGORY:
@@ -323,12 +320,10 @@ class ProfileImporter:
         self._validate_params(params, ('workspace_id',
                                        'func_profile_obj_name',
                                        'original_matrix_ref',
-                                       'profile_file_path'),
-                                      ('amplicon_set_ref',
-                                       'sample_set_ref',
                                        'profile_type',
                                        'profile_category',
-                                       'data_epistemology',
+                                       'profile_file_path'),
+                                      ('data_epistemology',
                                        'epistemology_method',
                                        'description',
                                        'staging_file',
@@ -341,15 +336,21 @@ class ProfileImporter:
         profile_file_path = params.get('profile_file_path')
 
         original_matrix_ref = params.get('original_matrix_ref')
-        amplicon_set_ref = params.get('amplicon_set_ref')
-        sample_set_ref = params.get('sample_set_ref')
+        matrix_data = self.dfu.get_objects(
+                                            {'object_refs': [original_matrix_ref]})['data'][0]['data']
+
+        amplicon_set_ref = matrix_data.get('amplicon_set_ref')
+        sample_set_ref = matrix_data.get('sample_set_ref')
+        params['col_attributemapping_ref'] = matrix_data.get('col_attributemapping_ref')
+        params['row_attributemapping_ref'] = matrix_data.get('row_attributemapping_ref')
 
         profile_category = params.get('profile_category', '').lower()
         profile_type = params.get('profile_type', '').lower()
 
         metadata = dict()
         meta_fields = ['profile_category', 'profile_type',
-                       'data_epistemology', 'epistemology_method', 'description']
+                       'data_epistemology', 'epistemology_method', 'description',
+                       'col_attributemapping_ref', 'row_attributemapping_ref']
         for meta_field in meta_fields:
             field_value = params.get(meta_field)
             if field_value:
