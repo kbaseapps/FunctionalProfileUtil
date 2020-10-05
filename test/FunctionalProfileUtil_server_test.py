@@ -211,11 +211,12 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
         fake_object_ref = self.createAnObject()
+        profile_file_path = os.path.join('data', 'func_table_trans.tsv')
 
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': fake_object_ref,
-                  'profile_file_path': os.path.join('data', 'func_table_trans.tsv'),
+                  'profile_file_path': profile_file_path,
                   'profile_type': 'Amplicon',
                   'profile_category': 'organism',
                   'data_epistemology': 'predicted',
