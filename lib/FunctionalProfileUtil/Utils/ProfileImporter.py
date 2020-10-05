@@ -236,7 +236,7 @@ class ProfileImporter:
 
         return amplicons.keys()
 
-    def _build_profile_data(self, profile_file_path, item_ids, staging_file=False):
+    def _build_profile_data(self, profile_file_path, item_ids, profile_category, staging_file=False):
 
         if not profile_file_path:
             raise ValueError('Missing profile file path')
@@ -251,19 +251,23 @@ class ProfileImporter:
         df = self._file_to_df(profile_file_path)
 
         # check profile file has all item ids from sample/amplicon set object
-        unmatched_ids = set(item_ids) - set(df.columns)
-        if unmatched_ids:
-            msg = 'Found some unmatched set data ids in profile file columns\n{}'.format(
-                                                                                    unmatched_ids)
-            logging.warning(msg)
-            df = df.T
+        if profile_category == 'community':
             unmatched_ids = set(item_ids) - set(df.columns)
+            if unmatched_ids:
+                msg = 'Found some unmatched set data ids in profile file columns\n{}'.format(
+                                                                                    unmatched_ids)
+                logging.warning(msg)
+                err_msg = 'Profile file does not contain all data ids from sample set'
+                raise ValueError(err_msg)
+        else:
+            unmatched_ids = set(item_ids) - set(df.index)
             if unmatched_ids:
                 msg = 'Found some unmatched set data ids in profile file rows\n{}'.format(
                                                                                     unmatched_ids)
                 logging.warning(msg)
-                err_msg = 'Profile file does not contain all data ids from sample or amplicon set'
+                err_msg = 'Profile file does not contain all data ids from amplicon set'
                 raise ValueError(err_msg)
+            unmatched_ids = set(item_ids) - set(df.index)
 
         profile_data = {'row_ids': df.index.tolist(),
                         'col_ids': df.columns.tolist(),
@@ -296,7 +300,7 @@ class ProfileImporter:
             func_profile_data['amplicon_set_ref'] = amplicon_set_ref
             item_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
 
-        profile_data = self._build_profile_data(profile_file_path, item_ids,
+        profile_data = self._build_profile_data(profile_file_path, item_ids, profile_category,
                                                 staging_file=staging_file)
         func_profile_data['data'] = profile_data
 

@@ -146,14 +146,13 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
-        profile_file_path = os.path.join('data', 'func_table.tsv')
         fake_object_ref = self.createAnObject()
 
         # import community profile
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': fake_object_ref,
-                  'profile_file_path': profile_file_path,
+                  'profile_file_path': os.path.join('data', 'func_table.tsv'),
                   'profile_type': 'Amplicon',
                   'profile_category': 'community',
                   'data_epistemology': 'predicted',
@@ -179,7 +178,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': fake_object_ref,
-                  'profile_file_path': profile_file_path,
+                  'profile_file_path': os.path.join('data', 'func_table_trans.tsv'),
                   'profile_type': 'Amplicon',
                   'profile_category': 'organism',
                   'data_epistemology': 'predicted',
@@ -199,7 +198,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')
         self.assertEqual(func_profile_data['profile_type'], 'Amplicon')
-        self.assertCountEqual(data_ids, func_profile_data['data']['col_ids'])
+        self.assertCountEqual(data_ids, func_profile_data['data']['row_ids'])
 
         self.assertEqual(func_profile_data['data_epistemology'], 'predicted')
         self.assertEqual(func_profile_data['epistemology_method'], 'FAPROTAX')
@@ -210,13 +209,12 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
-        profile_file_path = os.path.join('data', 'func_table.tsv')
         fake_object_ref = self.createAnObject()
 
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
                   'original_matrix_ref': fake_object_ref,
-                  'profile_file_path': profile_file_path,
+                  'profile_file_path': os.path.join('data', 'func_table_trans.tsv'),
                   'profile_type': 'Amplicon',
                   'profile_category': 'organism',
                   'data_epistemology': 'predicted',
@@ -237,7 +235,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')
         self.assertEqual(func_profile_data['profile_type'], 'Amplicon')
-        self.assertCountEqual(data_ids, func_profile_data['data']['col_ids'])
+        self.assertCountEqual(data_ids, func_profile_data['data']['row_ids'])
 
         self.assertEqual(func_profile_data['data_epistemology'], 'predicted')
         self.assertEqual(func_profile_data['epistemology_method'], 'FAPROTAX')
