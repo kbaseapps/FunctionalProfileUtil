@@ -304,6 +304,7 @@ class ProfileImporter:
             if not sample_set_ref:
                 raise ValueError('Please provide sample set object for community profile')
             func_profile_data['sample_set_ref'] = sample_set_ref
+            func_profile_data.pop('row_attributemapping_ref', None)
             item_ids = self.sampleservice_util.get_ids_from_samples(sample_set_ref)
 
         if profile_category == 'organism':
@@ -311,6 +312,7 @@ class ProfileImporter:
             if not amplicon_set_ref:
                 raise ValueError('Please provide amplicon set object for organism profile')
             func_profile_data['amplicon_set_ref'] = amplicon_set_ref
+            func_profile_data.pop('col_attributemapping_ref', None)
             item_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
 
         profile_data = self._build_profile_data(profile_file_path, item_ids, profile_category,
