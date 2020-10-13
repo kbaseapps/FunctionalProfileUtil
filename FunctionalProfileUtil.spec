@@ -17,8 +17,7 @@ module FunctionalProfileUtil {
     /*
       func_profile_obj_name - result FunctionalProfile object name
       original_matrix_ref - original matrix object associated with this functional profile object
-                            original matrix must have sample_set_ref for community_profile
-                                                  and amplicon_set_ref for organism_profile
+
       profile_file_path - either a local file path or staging file path
       profile_type - type of profile. e.g. amplicon, MG
       profile_category - category of profile. one of community or organism

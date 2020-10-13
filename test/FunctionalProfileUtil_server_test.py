@@ -8,7 +8,6 @@ import json
 
 from FunctionalProfileUtil.FunctionalProfileUtilImpl import FunctionalProfileUtil
 from FunctionalProfileUtil.Utils.ProfileImporter import ProfileImporter
-from FunctionalProfileUtil.Utils.SampleServiceUtil import SampleServiceUtil
 from FunctionalProfileUtil.FunctionalProfileUtilServer import MethodContext
 from FunctionalProfileUtil.authclient import KBaseAuth as _KBaseAuth
 
@@ -103,24 +102,6 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                       'profile_category': 'fake profile_category'}
             self.serviceImpl.import_func_profile(self.ctx, params)
 
-        with self.assertRaisesRegex(ValueError, "Please provide sample set object for community profile"):
-            params = {'workspace_id': self.wsId,
-                      'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': fake_object_ref,
-                      'profile_file_path': 'profile_file_path',
-                      'profile_type': 'amplicon',
-                      'profile_category': 'community'}
-            self.serviceImpl.import_func_profile(self.ctx, params)
-
-        with self.assertRaisesRegex(ValueError, "Please provide amplicon set object for organism profile"):
-            params = {'workspace_id': self.wsId,
-                      'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': fake_object_ref,
-                      'profile_file_path': 'profile_file_path',
-                      'profile_type': 'amplicon',
-                      'profile_category': 'organism'}
-            self.serviceImpl.import_func_profile(self.ctx, params)
-
     def mock_save_objects(params):
         print('Mocking DataFileUtilClient.save_objects')
 
@@ -134,15 +115,15 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         fake_object_ref = params['object_refs'][0]
 
         obj_data = {'sample_set_ref': fake_object_ref,
-                    'amplicon_set_ref': fake_object_ref}
+                    'col_attributemapping_ref': fake_object_ref,
+                    'row_attributemapping_ref': fake_object_ref,
+                    'data': {'row_ids': DATA_IDS,
+                             'col_ids': DATA_IDS}}
 
         return {'data': [{'data': obj_data}]}
 
-    @patch.object(SampleServiceUtil, "get_ids_from_samples", return_value=DATA_IDS)
-    @patch.object(ProfileImporter, "_get_ids_from_amplicon_set", return_value=DATA_IDS)
     @patch.object(DataFileUtil, "save_objects", side_effect=mock_save_objects)
-    def test_import_func_profile(self, get_ids_from_samples, _get_ids_from_amplicon_set,
-                                 save_objects):
+    def test_import_func_profile(self, save_objects):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
@@ -168,7 +149,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'original_matrix_ref', 'sample_set_ref', 'data']
+                         'original_matrix_ref', 'sample_set_ref', 'col_attributemapping_ref',
+                         'data']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'community')
@@ -194,7 +176,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'original_matrix_ref', 'amplicon_set_ref', 'data']
+                         'original_matrix_ref', 'row_attributemapping_ref', 'data']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')
@@ -204,9 +186,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         self.assertEqual(func_profile_data['data_epistemology'], 'predicted')
         self.assertEqual(func_profile_data['epistemology_method'], 'FAPROTAX')
 
-    @patch.object(SampleServiceUtil, "get_ids_from_samples", return_value=DATA_IDS)
-    @patch.object(ProfileImporter, "_get_ids_from_amplicon_set", return_value=DATA_IDS)
-    def test_import_func_profile_real_test(self, get_ids_from_samples, _get_ids_from_amplicon_set):
+    def test_import_func_profile_real_test(self):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
@@ -232,7 +212,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'original_matrix_ref', 'amplicon_set_ref', 'data']
+                         'original_matrix_ref', 'row_attributemapping_ref', 'data']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')
