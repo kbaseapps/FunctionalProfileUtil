@@ -226,16 +226,6 @@ class ProfileImporter:
 
         return report_output
 
-    def _get_ids_from_amplicon_set(self, amplicon_set_ref):
-        logging.info('start retrieving OTU ids from amplicon set')
-
-        amplicon_set_data = self.dfu.get_objects(
-                                            {'object_refs': [amplicon_set_ref]})['data'][0]['data']
-
-        amplicons = amplicon_set_data.get('amplicons')
-
-        return amplicons.keys()
-
     def _build_profile_data(self, profile_file_path, item_ids, profile_category, staging_file=False):
 
         if not profile_file_path:
@@ -288,7 +278,7 @@ class ProfileImporter:
 
         return profile_data
 
-    def _gen_func_profile(self, original_matrix_ref, amplicon_set_ref, sample_set_ref,
+    def _gen_func_profile(self, original_matrix_ref, matrix_data,
                           profile_category, profile_file_path, metadata, staging_file=False):
 
         func_profile_data = dict()
@@ -301,19 +291,14 @@ class ProfileImporter:
 
         if profile_category == 'community':
             logging.info('start building community profile')
-            if not sample_set_ref:
-                raise ValueError('Please provide sample set object for community profile')
-            func_profile_data['sample_set_ref'] = sample_set_ref
+            item_ids = matrix_data['col_ids']
             func_profile_data.pop('row_attributemapping_ref', None)
-            item_ids = self.sampleservice_util.get_ids_from_samples(sample_set_ref)
 
         if profile_category == 'organism':
             logging.info('start building organism profile')
-            if not amplicon_set_ref:
-                raise ValueError('Please provide amplicon set object for organism profile')
-            func_profile_data['amplicon_set_ref'] = amplicon_set_ref
+            item_ids = matrix_data['row_ids']
             func_profile_data.pop('col_attributemapping_ref', None)
-            item_ids = self._get_ids_from_amplicon_set(amplicon_set_ref)
+            func_profile_data.pop('sample_set_ref', None)
 
         profile_data = self._build_profile_data(profile_file_path, item_ids, profile_category,
                                                 staging_file=staging_file)
@@ -327,7 +312,7 @@ class ProfileImporter:
         self.token = config['KB_AUTH_TOKEN']
         self.dfu = DataFileUtil(self.callback_url)
         self.report_util = kb_GenericsReport(self.callback_url)
-        self.sampleservice_util = SampleServiceUtil(config)
+        # self.sampleservice_util = SampleServiceUtil(config)
 
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)
@@ -358,8 +343,7 @@ class ProfileImporter:
         matrix_data = self.dfu.get_objects(
                                             {'object_refs': [original_matrix_ref]})['data'][0]['data']
 
-        amplicon_set_ref = matrix_data.get('amplicon_set_ref')
-        sample_set_ref = matrix_data.get('sample_set_ref')
+        params['sample_set_ref'] = matrix_data.get('sample_set_ref')
         params['col_attributemapping_ref'] = matrix_data.get('col_attributemapping_ref')
         params['row_attributemapping_ref'] = matrix_data.get('row_attributemapping_ref')
 
@@ -369,7 +353,7 @@ class ProfileImporter:
         metadata = dict()
         meta_fields = ['profile_category', 'profile_type',
                        'data_epistemology', 'epistemology_method', 'description',
-                       'col_attributemapping_ref', 'row_attributemapping_ref']
+                       'col_attributemapping_ref', 'row_attributemapping_ref', 'sample_set_ref']
         for meta_field in meta_fields:
             field_value = params.get(meta_field)
             if field_value:
@@ -379,8 +363,7 @@ class ProfileImporter:
             raise ValueError('Please choose one of {} as profile type'.format(PROFILE_TYPE))
 
         func_profile_data = self._gen_func_profile(original_matrix_ref,
-                                                   amplicon_set_ref,
-                                                   sample_set_ref,
+                                                   matrix_data.get('data'),
                                                    profile_category,
                                                    profile_file_path,
                                                    metadata,

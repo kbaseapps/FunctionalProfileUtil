@@ -41,7 +41,6 @@ module KBaseProfile {
 
       sample_set_ref - associated with community_profile (fetched from original matrix)
       col_attributemapping_ref - assoicated with community_profile (fetched from original matrix)
-      amplicon_set_ref - associated with organism_profile (fetched from original matrix)
       row_attributemapping_ref - assoicated with organism_profile (fetched from original matrix)
 
       data_epistemology - how was data acquired. one of: measured, asserted, predicted
@@ -49,12 +48,11 @@ module KBaseProfile {
       profile_type - type of profile. e.g. amplicon, MG
       profile_category - category of profile. one of community or organism
 
-      @optional sample_set_ref amplicon_set_ref col_attributemapping_ref row_attributemapping_ref
+      @optional sample_set_ref col_attributemapping_ref row_attributemapping_ref
       @optional data_epistemology epistemology_method description
 
       @metadata ws original_matrix_ref as original_matrix
       @metadata ws sample_set_ref as sample_set
-      @metadata ws amplicon_set_ref as amplicon_set
       @metadata ws col_attributemapping_ref as col_attribute_mapping
       @metadata ws row_attributemapping_ref as row_attribute_mapping
       @metadata ws length(data.row_ids) as row_count
@@ -68,7 +66,6 @@ module KBaseProfile {
     typedef structure {
       WSRef original_matrix_ref;
       WSRef sample_set_ref;
-      WSRef amplicon_set_ref;
       WSRef col_attributemapping_ref;
       WSRef row_attributemapping_ref;
       FloatMatrix2D data;
