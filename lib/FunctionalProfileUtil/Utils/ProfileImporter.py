@@ -84,22 +84,12 @@ class ProfileImporter:
 
     def _save_func_profile(self, workspace_id, func_profile_data, func_profile_obj_name):
         logging.info('start saving FunctionalProfile object: {}'.format(func_profile_obj_name))
-        # info = self.dfu.save_objects({
-        #     "id": workspace_id,
-        #     "objects": [{
-        #         "type": "KBaseProfile.FunctionalProfile",
-        #         "data": func_profile_data,
-        #         "name": func_profile_obj_name
-        #     }]
-        # })[0]
 
         obj_ref = self.generics_api.save_object({'obj_type': 'KBaseProfile.FunctionalProfile',
                                                  'obj_name': func_profile_obj_name,
                                                  'data': func_profile_data,
                                                  'workspace_name': workspace_id
                                                  })['obj_ref']
-
-        # return "%s/%s/%s" % (info[6], info[0], info[4])
 
         return obj_ref
 
