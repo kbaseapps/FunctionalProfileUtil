@@ -13,6 +13,7 @@ from FunctionalProfileUtil.authclient import KBaseAuth as _KBaseAuth
 
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.DataFileUtilClient import DataFileUtil
+from installed_clients.GenericsAPIClient import GenericsAPI
 from installed_clients.FakeObjectsForTestsClient import FakeObjectsForTests
 
 DATA_IDS = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
@@ -103,11 +104,11 @@ class FunctionalProfileUtilTest(unittest.TestCase):
             self.serviceImpl.import_func_profile(self.ctx, params)
 
     def mock_save_objects(params):
-        print('Mocking DataFileUtilClient.save_objects')
+        print('Mocking GenericsAPI.save_object')
 
-        obj_data = params['objects'][0]['data']
+        obj_data = params['data']
 
-        return [[obj_data, None, None, None, None, None, None]]
+        return {'obj_ref': obj_data}
 
     def mock_get_objects(self, params):
         print('Mocking DataFileUtilClient.get_objects')
@@ -122,8 +123,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         return {'data': [{'data': obj_data}]}
 
-    @patch.object(DataFileUtil, "save_objects", side_effect=mock_save_objects)
-    def test_import_func_profile(self, save_objects):
+    @patch.object(GenericsAPI, "save_object", side_effect=mock_save_objects)
+    def test_import_func_profile(self, save_object):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
@@ -140,12 +141,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'data_epistemology': 'predicted',
                   'epistemology_method': 'FAPROTAX'}
         with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
-            func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
-                                                                    params)[0]['func_profile_ref']
-
-        func_profile_data_str = 'null'.join(
-                                func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
-        func_profile_data = json.loads(func_profile_data_str)
+            func_profile_data = self.serviceImpl.import_func_profile(self.ctx,
+                                                                     params)[0]['func_profile_ref']
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
@@ -167,12 +164,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'data_epistemology': 'predicted',
                   'epistemology_method': 'FAPROTAX'}
         with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
-            func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
-                                                                    params)[0]['func_profile_ref']
-
-        func_profile_data_str = 'null'.join(
-                                func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
-        func_profile_data = json.loads(func_profile_data_str)
+            func_profile_data = self.serviceImpl.import_func_profile(self.ctx,
+                                                                     params)[0]['func_profile_ref']
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
