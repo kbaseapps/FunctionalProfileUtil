@@ -13,6 +13,7 @@ from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseReportClient import KBaseReport
 from installed_clients.kb_GenericsReportClient import kb_GenericsReport
 from installed_clients.GenericsAPIClient import GenericsAPI
+from installed_clients.WsLargeDataIOClient import WsLargeDataIO
 
 
 DATA_EPISTEMOLOGY = ['measured', 'asserted', 'predicted']
@@ -62,15 +63,17 @@ class ProfileImporter:
         return "%s %s" % (s, size_name[i])
 
     def _calculate_object_size(self, func_profile_data):
+        json_size = 0
         try:
             logging.info('start calculating object size')
             json_object = json.dumps(func_profile_data).encode("utf-8")
-
-            json_size = self._convert_size(len(json_object))
-
-            logging.info('serialized object JSON size: {}'.format(json_size))
+            json_size = len(json_object)
+            size_str = self._convert_size(json_size)
+            logging.info('serialized object JSON size: {}'.format(size_str))
         except Exception:
             logging.info('failed to calculate object size')
+
+        return json_size
 
     @staticmethod
     def _file_to_df(file_path):
@@ -108,13 +111,40 @@ class ProfileImporter:
     def _save_func_profile(self, workspace_id, func_profile_data, func_profile_obj_name):
         logging.info('start saving FunctionalProfile object: {}'.format(func_profile_obj_name))
 
-        self._calculate_object_size(func_profile_data)
+        obj_size = self._calculate_object_size(func_profile_data)
 
-        obj_ref = self.generics_api.save_object({'obj_type': 'KBaseProfile.FunctionalProfile',
-                                                 'obj_name': func_profile_obj_name,
-                                                 'data': func_profile_data,
-                                                 'workspace_id': workspace_id
-                                                 })['obj_ref']
+        MB_200 = 200 * 1024 * 1024
+        GB_1 = 1 * 1024 * 1024 * 1024
+
+        if obj_size > GB_1:
+            raise ValueError('Object is too large')
+        elif obj_size <= MB_200:
+            logging.info('Starting saving object via DataFileUtil')
+            info = self.dfu.save_objects({
+                "id": workspace_id,
+                "objects": [{
+                    "type": 'KBaseProfile.FunctionalProfile',
+                    "data": func_profile_data,
+                    "name": func_profile_obj_name
+                }]
+            })[0]
+        else:
+            logging.info('Starting saving object via WsLargeDataIO')
+            data_path = os.path.join(self.scratch,
+                                     func_profile_obj_name + "_" + str(uuid.uuid4()) + ".json")
+            logging.info('Dumpping object data to file: {}'.format(data_path))
+            json.dump(func_profile_data, open(data_path, 'w'))
+
+            info = self.ws_large_data.save_objects({
+                "id": workspace_id,
+                "objects": [{
+                    "type": 'KBaseProfile.FunctionalProfile',
+                    "data_json_file": data_path,
+                    "name": func_profile_obj_name
+                }]
+            })[0]
+
+        obj_ref = "%s/%s/%s" % (info[6], info[0], info[4])
 
         return obj_ref
 
@@ -336,6 +366,7 @@ class ProfileImporter:
         self.dfu = DataFileUtil(self.callback_url)
         self.report_util = kb_GenericsReport(self.callback_url)
         self.generics_api = GenericsAPI(self.callback_url)
+        self.ws_large_data = WsLargeDataIO(self.callback_url)
 
         logging.basicConfig(format='%(created)s %(levelname)s: %(message)s',
                             level=logging.INFO)

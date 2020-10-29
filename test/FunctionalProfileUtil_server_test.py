@@ -13,7 +13,6 @@ from FunctionalProfileUtil.authclient import KBaseAuth as _KBaseAuth
 
 from installed_clients.WorkspaceClient import Workspace
 from installed_clients.DataFileUtilClient import DataFileUtil
-from installed_clients.GenericsAPIClient import GenericsAPI
 from installed_clients.FakeObjectsForTestsClient import FakeObjectsForTests
 
 DATA_IDS = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
@@ -104,11 +103,11 @@ class FunctionalProfileUtilTest(unittest.TestCase):
             self.serviceImpl.import_func_profile(self.ctx, params)
 
     def mock_save_objects(params):
-        print('Mocking GenericsAPI.save_object')
+        print('Mocking DataFileUtilClient.save_objects')
 
-        obj_data = params['data']
+        obj_data = params['objects'][0]['data']
 
-        return {'obj_ref': obj_data}
+        return [[obj_data, None, None, None, None, None, None]]
 
     def mock_get_objects(self, params):
         print('Mocking DataFileUtilClient.get_objects')
@@ -123,8 +122,8 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         return {'data': [{'data': obj_data}]}
 
-    @patch.object(GenericsAPI, "save_object", side_effect=mock_save_objects)
-    def test_import_func_profile(self, save_object):
+    @patch.object(DataFileUtil, "save_objects", side_effect=mock_save_objects)
+    def test_import_func_profile(self, save_objects):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
                     'PB-Low-7', 'PB-High-7', 'PB-Low-8', 'PB-High-8']
@@ -141,8 +140,11 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'data_epistemology': 'predicted',
                   'epistemology_method': 'FAPROTAX'}
         with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
-            func_profile_data = self.serviceImpl.import_func_profile(self.ctx,
-                                                                     params)[0]['func_profile_ref']
+            func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                    params)[0]['func_profile_ref']
+            func_profile_data_str = 'null'.join(
+                                func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
+            func_profile_data = json.loads(func_profile_data_str)
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
@@ -164,8 +166,11 @@ class FunctionalProfileUtilTest(unittest.TestCase):
                   'data_epistemology': 'predicted',
                   'epistemology_method': 'FAPROTAX'}
         with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
-            func_profile_data = self.serviceImpl.import_func_profile(self.ctx,
-                                                                     params)[0]['func_profile_ref']
+            func_profile_ref = self.serviceImpl.import_func_profile(self.ctx,
+                                                                    params)[0]['func_profile_ref']
+            func_profile_data_str = 'null'.join(
+                                func_profile_ref.split("None")[1:-1]).strip('/').replace("'", '"')
+            func_profile_data = json.loads(func_profile_data_str)
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
@@ -199,6 +204,29 @@ class FunctionalProfileUtilTest(unittest.TestCase):
             func_profile_ref = self.serviceImpl.import_func_profile(
                                                                 self.ctx,
                                                                 params)[0]['func_profile_ref']
+
+        func_profile_data = self.dfu.get_objects(
+                                            {'object_refs': [func_profile_ref]})['data'][0]['data']
+
+        expected_keys = ['profile_category', 'profile_type',
+                         'data_epistemology', 'epistemology_method',
+                         'original_matrix_ref', 'row_attributemapping_ref', 'data']
+        self.assertCountEqual(func_profile_data.keys(), expected_keys)
+
+        self.assertEqual(func_profile_data['profile_category'], 'organism')
+        self.assertEqual(func_profile_data['profile_type'], 'Amplicon')
+        self.assertCountEqual(data_ids, func_profile_data['data']['row_ids'])
+
+        self.assertEqual(func_profile_data['data_epistemology'], 'predicted')
+        self.assertEqual(func_profile_data['epistemology_method'], 'FAPROTAX')
+
+        # import profile large size
+        MB_300 = 300 * 1024 * 1024
+        with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
+            with patch.object(ProfileImporter, "_calculate_object_size", return_value=MB_300):
+                func_profile_ref = self.serviceImpl.import_func_profile(
+                                                                    self.ctx,
+                                                                    params)[0]['func_profile_ref']
 
         func_profile_data = self.dfu.get_objects(
                                             {'object_refs': [func_profile_ref]})['data'][0]['data']
