@@ -64,7 +64,7 @@ class ProfileImporter:
     def _calculate_object_size(self, func_profile_data):
         try:
             logging.info('start calculating object size')
-            json_object = json.dumps(func_profile_data)
+            json_object = json.dumps(func_profile_data).encode("utf-8")
 
             json_size = self._convert_size(len(json_object))
 
