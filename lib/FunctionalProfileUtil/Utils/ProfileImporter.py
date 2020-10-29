@@ -6,6 +6,8 @@ import pandas as pd
 from xlrd.biffh import XLRDError
 import uuid
 import shutil
+import math
+import json
 
 from installed_clients.DataFileUtilClient import DataFileUtil
 from installed_clients.KBaseReportClient import KBaseReport
@@ -50,6 +52,27 @@ class ProfileImporter:
                 logging.warning("Unexpected parameter {} supplied".format(param))
 
     @staticmethod
+    def _convert_size(size_bytes):
+        if size_bytes == 0:
+            return "0B"
+        size_name = ("B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB")
+        i = int(math.floor(math.log(size_bytes, 1024)))
+        p = math.pow(1024, i)
+        s = round(size_bytes / p, 2)
+        return "%s %s" % (s, size_name[i])
+
+    def _calculate_object_size(self, func_profile_data):
+        try:
+            logging.info('start calculating object size')
+            json_object = json.dumps(func_profile_data)
+
+            json_size = self._convert_size(len(json_object))
+
+            logging.info('serialized object JSON size: {}'.format(json_size))
+        except Exception:
+            logging.info('failed to calculate object size')
+
+    @staticmethod
     def _file_to_df(file_path):
         logging.info('start parsing file content to data frame')
 
@@ -84,6 +107,8 @@ class ProfileImporter:
 
     def _save_func_profile(self, workspace_id, func_profile_data, func_profile_obj_name):
         logging.info('start saving FunctionalProfile object: {}'.format(func_profile_obj_name))
+
+        self._calculate_object_size(func_profile_data)
 
         obj_ref = self.generics_api.save_object({'obj_type': 'KBaseProfile.FunctionalProfile',
                                                  'obj_name': func_profile_obj_name,
