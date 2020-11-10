@@ -297,32 +297,32 @@ class ProfileImporter:
         if profile_category == 'community':
             unmatched_ids = set(df.columns) - set(item_ids)
             if unmatched_ids:
-                msg = 'Found some unmatched set data ids in profile file columns\n{}'.format(
+                msg = 'Found some unmatched data ids in profile file columns\n{}'.format(
                                                                                     unmatched_ids)
                 logging.warning(msg)
 
                 unmatched_ids = set(df.index) - set(item_ids)
                 if not unmatched_ids:
-                    logging.warning('File index contains all items from sample set')
+                    logging.warning('File index contains all items from matrix column')
                     logging.warning('Using transpose matrix from file')
                     df = df.T
                 else:
-                    err_msg = 'Profile file does not contain all data ids from sample set'
+                    err_msg = 'Matrix column does not contain all data ids from profile file'
                     raise ValueError(err_msg)
         else:
             unmatched_ids = set(df.index) - set(item_ids)
             if unmatched_ids:
-                msg = 'Found some unmatched set data ids in profile file rows\n{}'.format(
+                msg = 'Found some unmatched data ids in profile file rows\n{}'.format(
                                                                                     unmatched_ids)
                 logging.warning(msg)
 
                 unmatched_ids = set(df.columns) - set(item_ids)
                 if not unmatched_ids:
-                    logging.warning('File columns contains all items from amplicon set')
+                    logging.warning('File columns contains all items from matrix row')
                     logging.warning('Using transpose matrix from file')
                     df = df.T
                 else:
-                    err_msg = 'Profile file does not contain all data ids from amplicon set'
+                    err_msg = 'Matrix row does not contain all data ids from profile file'
                     raise ValueError(err_msg)
 
         profile_data = {'row_ids': df.index.tolist(),
