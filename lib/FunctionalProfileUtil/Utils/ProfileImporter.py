@@ -295,13 +295,13 @@ class ProfileImporter:
 
         # check profile file has all item ids from sample/amplicon set object
         if profile_category == 'community':
-            unmatched_ids = set(item_ids) - set(df.columns)
+            unmatched_ids = set(df.columns) - set(item_ids)
             if unmatched_ids:
                 msg = 'Found some unmatched set data ids in profile file columns\n{}'.format(
                                                                                     unmatched_ids)
                 logging.warning(msg)
 
-                unmatched_ids = set(item_ids) - set(df.index)
+                unmatched_ids = set(df.index) - set(item_ids)
                 if not unmatched_ids:
                     logging.warning('File index contains all items from sample set')
                     logging.warning('Using transpose matrix from file')
@@ -310,13 +310,13 @@ class ProfileImporter:
                     err_msg = 'Profile file does not contain all data ids from sample set'
                     raise ValueError(err_msg)
         else:
-            unmatched_ids = set(item_ids) - set(df.index)
+            unmatched_ids = set(df.index) - set(item_ids)
             if unmatched_ids:
                 msg = 'Found some unmatched set data ids in profile file rows\n{}'.format(
                                                                                     unmatched_ids)
                 logging.warning(msg)
 
-                unmatched_ids = set(item_ids) - set(df.columns)
+                unmatched_ids = set(df.columns) - set(item_ids)
                 if not unmatched_ids:
                     logging.warning('File columns contains all items from amplicon set')
                     logging.warning('Using transpose matrix from file')
