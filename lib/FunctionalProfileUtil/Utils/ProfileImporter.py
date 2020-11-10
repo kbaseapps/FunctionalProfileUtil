@@ -303,10 +303,13 @@ class ProfileImporter:
 
                 unmatched_ids = set(df.index) - set(item_ids)
                 if not unmatched_ids:
-                    logging.warning('File index contains all items from matrix column')
+                    logging.warning('Matrix column contains all items from file index')
                     logging.warning('Using transpose matrix from file')
                     df = df.T
                 else:
+                    msg = 'Found some unmatched data ids in profile file rows\n{}'.format(
+                                                                                    unmatched_ids)
+                    logging.warning(msg)
                     err_msg = 'Matrix column does not contain all data ids from profile file'
                     raise ValueError(err_msg)
         else:
@@ -318,10 +321,13 @@ class ProfileImporter:
 
                 unmatched_ids = set(df.columns) - set(item_ids)
                 if not unmatched_ids:
-                    logging.warning('File columns contains all items from matrix row')
+                    logging.warning('Matrix row contains all items from file columns')
                     logging.warning('Using transpose matrix from file')
                     df = df.T
                 else:
+                    msg = 'Found some unmatched data ids in profile file columns\n{}'.format(
+                                                                                    unmatched_ids)
+                    logging.warning(msg)
                     err_msg = 'Matrix row does not contain all data ids from profile file'
                     raise ValueError(err_msg)
 
