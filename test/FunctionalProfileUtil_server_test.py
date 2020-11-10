@@ -184,6 +184,31 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         self.assertEqual(func_profile_data['data_epistemology'], 'predicted')
         self.assertEqual(func_profile_data['epistemology_method'], 'FAPROTAX')
 
+        # functional profile table has more items than matrix
+        with self.assertRaisesRegex(ValueError, "Matrix column does not"):
+            params = {'workspace_id': self.wsId,
+                      'func_profile_obj_name': 'test_func_profile',
+                      'original_matrix_ref': fake_object_ref,
+                      'profile_file_path': os.path.join('data', 'func_table_extra_col.tsv'),
+                      'profile_type': 'Amplicon',
+                      'profile_category': 'community',
+                      'data_epistemology': 'predicted',
+                      'epistemology_method': 'FAPROTAX'}
+            with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
+                self.serviceImpl.import_func_profile(self.ctx, params)
+
+        with self.assertRaisesRegex(ValueError, "Matrix row does not"):
+            params = {'workspace_id': self.wsId,
+                      'func_profile_obj_name': 'test_func_profile',
+                      'original_matrix_ref': fake_object_ref,
+                      'profile_file_path': os.path.join('data', 'func_table_extra_col.tsv'),
+                      'profile_type': 'Amplicon',
+                      'profile_category': 'organism',
+                      'data_epistemology': 'predicted',
+                      'epistemology_method': 'FAPROTAX'}
+            with patch.object(DataFileUtil, "get_objects", side_effect=self.mock_get_objects):
+                self.serviceImpl.import_func_profile(self.ctx, params)
+
     def test_import_func_profile_real_test(self):
 
         data_ids = ['PB-Low-5', 'PB-High-5', 'PB-Low-6', 'PB-High-6',
