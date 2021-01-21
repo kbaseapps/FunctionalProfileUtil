@@ -210,7 +210,7 @@ class ProfileImporter:
 
         if heatmap_index_page:
             tab_content += '''\n<div id="{}" class="tabcontent">'''.format(viewer_name)
-            tab_content += '\n<iframe height="900px" width="100%" '
+            tab_content += '\n<iframe height="1300px" width="100%" '
             tab_content += 'src="{}" '.format(heatmap_index_page)
             tab_content += 'style="border:none;"></iframe>'
             tab_content += '\n</div>\n'
@@ -269,7 +269,7 @@ class ProfileImporter:
                          'workspace_id': workspace_id,
                          'html_links': output_html_files,
                          'direct_html_link_index': 0,
-                         'html_window_height': 660,
+                         'html_window_height': 1400,
                          'report_object_name': 'func_profile_viewer_' + str(uuid.uuid4())}
 
         kbase_report_client = KBaseReport(self.callback_url, token=self.token)
