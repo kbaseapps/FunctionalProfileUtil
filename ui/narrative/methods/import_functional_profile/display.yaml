@@ -20,13 +20,13 @@ suggestions :
             []
 
 parameters :
-    original_matrix_ref :
+    base_object_ref :
         ui-name: |
-            Matrix Object
+            Base Object
         short-hint : |
-            One of KBaseMatrices object
+            Base object associated with this functional profile object
         long-hint  : |
-            One of KBaseMatrices object
+            Base object associated with this functional profile object
 
     profile_file_path:
         ui-name : |

@@ -87,7 +87,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Please choose one of"):
             params = {'workspace_id': self.wsId,
                       'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': fake_object_ref,
+                      'base_object_ref': fake_object_ref,
                       'profile_file_path': 'profile_file_path',
                       'profile_type': 'fake profile type',
                       'profile_category': 'organism'}
@@ -96,7 +96,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Please choose community or organism as profile category"):
             params = {'workspace_id': self.wsId,
                       'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': fake_object_ref,
+                      'base_object_ref': fake_object_ref,
                       'profile_file_path': 'profile_file_path',
                       'profile_type': 'amplicon',
                       'profile_category': 'fake profile_category'}
@@ -133,7 +133,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         # import community profile
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
-                  'original_matrix_ref': fake_object_ref,
+                  'base_object_ref': fake_object_ref,
                   'profile_file_path': profile_file_path,
                   'profile_type': 'Amplicon',
                   'profile_category': 'community',
@@ -148,8 +148,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'original_matrix_ref', 'sample_set_ref', 'col_attributemapping_ref',
-                         'data']
+                         'base_object_ref', 'data']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'community')
@@ -159,7 +158,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         # import organism profile
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
-                  'original_matrix_ref': fake_object_ref,
+                  'base_object_ref': fake_object_ref,
                   'profile_file_path': profile_file_path,  # testing tranpose profile also
                   'profile_type': 'Amplicon',
                   'profile_category': 'organism',
@@ -174,7 +173,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'original_matrix_ref', 'row_attributemapping_ref', 'data']
+                         'base_object_ref', 'data']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')
@@ -188,7 +187,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Matrix column does not"):
             params = {'workspace_id': self.wsId,
                       'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': fake_object_ref,
+                      'base_object_ref': fake_object_ref,
                       'profile_file_path': os.path.join('data', 'func_table_extra_col.tsv'),
                       'profile_type': 'Amplicon',
                       'profile_category': 'community',
@@ -200,7 +199,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Matrix row does not"):
             params = {'workspace_id': self.wsId,
                       'func_profile_obj_name': 'test_func_profile',
-                      'original_matrix_ref': fake_object_ref,
+                      'base_object_ref': fake_object_ref,
                       'profile_file_path': os.path.join('data', 'func_table_extra_col.tsv'),
                       'profile_type': 'Amplicon',
                       'profile_category': 'organism',
@@ -218,7 +217,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         params = {'workspace_id': self.wsId,
                   'func_profile_obj_name': 'test_func_profile',
-                  'original_matrix_ref': fake_object_ref,
+                  'base_object_ref': fake_object_ref,
                   'profile_file_path': profile_file_path,
                   'profile_type': 'Amplicon',
                   'profile_category': 'organism',
@@ -235,7 +234,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'original_matrix_ref', 'row_attributemapping_ref', 'data']
+                         'base_object_ref', 'data']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')
@@ -258,7 +257,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'original_matrix_ref', 'row_attributemapping_ref', 'data']
+                         'base_object_ref', 'data']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')

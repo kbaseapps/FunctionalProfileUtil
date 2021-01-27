@@ -16,7 +16,7 @@ module FunctionalProfileUtil {
 
     /*
       func_profile_obj_name - result FunctionalProfile object name
-      original_matrix_ref - original matrix object associated with this functional profile object
+      base_object_ref - base object associated with this functional profile object
 
       profile_file_path - either a local file path or staging file path
       profile_type - type of profile. e.g. amplicon, MG
@@ -32,7 +32,7 @@ module FunctionalProfileUtil {
     typedef structure {
       int workspace_id;
       string func_profile_obj_name;
-      WSRef original_matrix_ref;
+      WSRef base_object_ref;
       string profile_file_path;
       string profile_type;
       string profile_category;

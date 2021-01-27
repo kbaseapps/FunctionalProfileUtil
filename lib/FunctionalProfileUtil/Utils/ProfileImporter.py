@@ -18,7 +18,7 @@ from installed_clients.WsLargeDataIOClient import WsLargeDataIO
 
 DATA_EPISTEMOLOGY = ['measured', 'asserted', 'predicted']
 PROFILE_CATEGORY = ['community',  'organism']
-PROFILE_TYPE = ['amplicon', 'mg']
+PROFILE_TYPE = ['amplicon', 'mg', 'modelset']
 
 
 class ProfileImporter:
@@ -293,8 +293,8 @@ class ProfileImporter:
 
         df = self._file_to_df(profile_file_path)
 
-        # check profile file has all item ids from sample/amplicon set object
-        if profile_category == 'community':
+        # check base object contains all items from function profile file
+        if profile_category == 'community' and item_ids is not None:
             unmatched_ids = set(df.columns) - set(item_ids)
             if unmatched_ids:
                 msg = 'Found some unmatched data ids in profile file columns\n{}'.format(
@@ -312,7 +312,7 @@ class ProfileImporter:
                     logging.warning(msg)
                     err_msg = 'Matrix column does not contain all data ids from profile file'
                     raise ValueError(err_msg)
-        else:
+        elif profile_category == 'organism' and item_ids is not None:
             unmatched_ids = set(df.index) - set(item_ids)
             if unmatched_ids:
                 msg = 'Found some unmatched data ids in profile file rows\n{}'.format(
@@ -337,27 +337,27 @@ class ProfileImporter:
 
         return profile_data
 
-    def _gen_func_profile(self, original_matrix_ref, matrix_data,
+    def _gen_func_profile(self, base_object_ref, matrix_data,
                           profile_category, profile_file_path, metadata, staging_file=False):
 
         func_profile_data = dict()
+        item_ids = None
 
         func_profile_data.update(metadata)
-        func_profile_data['original_matrix_ref'] = original_matrix_ref
+        func_profile_data['base_object_ref'] = base_object_ref
 
         if profile_category not in PROFILE_CATEGORY:
             raise ValueError('Please choose community or organism as profile category')
 
         if profile_category == 'community':
             logging.info('start building community profile')
-            item_ids = matrix_data['col_ids']
-            func_profile_data.pop('row_attributemapping_ref', None)
+            if matrix_data:
+                item_ids = matrix_data.get('col_ids')
 
         if profile_category == 'organism':
             logging.info('start building organism profile')
-            item_ids = matrix_data['row_ids']
-            func_profile_data.pop('col_attributemapping_ref', None)
-            func_profile_data.pop('sample_set_ref', None)
+            if matrix_data:
+                item_ids = matrix_data.get('row_ids')
 
         profile_data = self._build_profile_data(profile_file_path, item_ids, profile_category,
                                                 staging_file=staging_file)
@@ -379,11 +379,15 @@ class ProfileImporter:
 
     def import_func_profile(self, params):
 
+        if params.get('original_matrix_ref') and params.get('base_object_ref') is None:
+            logging.info("rename original_matrix_ref to base_object_ref")
+            params['base_object_ref'] = params.pop('original_matrix_ref')
+
         logging.info("start importing FunctionalProfile with params:{}".format(params))
 
         self._validate_params(params, ('workspace_id',
                                        'func_profile_obj_name',
-                                       'original_matrix_ref',
+                                       'base_object_ref',
                                        'profile_type',
                                        'profile_category',
                                        'profile_file_path'),
@@ -399,21 +403,16 @@ class ProfileImporter:
         build_report = params.get('build_report', False)
         profile_file_path = params.get('profile_file_path')
 
-        original_matrix_ref = params.get('original_matrix_ref')
-        matrix_data = self.dfu.get_objects(
-                                            {'object_refs': [original_matrix_ref]})['data'][0]['data']
-
-        params['sample_set_ref'] = matrix_data.get('sample_set_ref')
-        params['col_attributemapping_ref'] = matrix_data.get('col_attributemapping_ref')
-        params['row_attributemapping_ref'] = matrix_data.get('row_attributemapping_ref')
+        base_object_ref = params.get('base_object_ref')
+        base_object_data = self.dfu.get_objects(
+                                            {'object_refs': [base_object_ref]})['data'][0]['data']
 
         profile_category = params.get('profile_category', '').lower()
         profile_type = params.get('profile_type', '').lower()
 
         metadata = dict()
         meta_fields = ['profile_category', 'profile_type',
-                       'data_epistemology', 'epistemology_method', 'description',
-                       'col_attributemapping_ref', 'row_attributemapping_ref', 'sample_set_ref']
+                       'data_epistemology', 'epistemology_method', 'description']
         for meta_field in meta_fields:
             field_value = params.get(meta_field)
             if field_value:
@@ -422,8 +421,8 @@ class ProfileImporter:
         if profile_type not in PROFILE_TYPE:
             raise ValueError('Please choose one of {} as profile type'.format(PROFILE_TYPE))
 
-        func_profile_data = self._gen_func_profile(original_matrix_ref,
-                                                   matrix_data.get('data'),
+        func_profile_data = self._gen_func_profile(base_object_ref,
+                                                   base_object_data.get('data'),
                                                    profile_category,
                                                    profile_file_path,
                                                    metadata,
