@@ -10,7 +10,7 @@
   },
   "parameters" : [
     {
-      "id" : "original_matrix_ref",
+      "id" : "base_object_ref",
       "optional" : false,
       "advanced" : false,
       "allow_multiple" : false,
@@ -147,8 +147,8 @@
           "target_property": "build_report"
         },
         {
-          "input_parameter" : "original_matrix_ref",
-          "target_property" : "original_matrix_ref",
+          "input_parameter" : "base_object_ref",
+          "target_property" : "base_object_ref",
           "target_type_transform": "resolved-ref"
         },
         {
