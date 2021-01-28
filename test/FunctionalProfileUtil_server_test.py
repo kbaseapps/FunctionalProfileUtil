@@ -148,7 +148,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'base_object_ref', 'data']
+                         'base_object_ref', 'data', 'col_attributemapping_ref']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'community')
@@ -173,7 +173,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'base_object_ref', 'data']
+                         'base_object_ref', 'data', 'row_attributemapping_ref']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')
@@ -234,7 +234,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'base_object_ref', 'data']
+                         'base_object_ref', 'data', 'row_attributemapping_ref']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')
@@ -257,7 +257,7 @@ class FunctionalProfileUtilTest(unittest.TestCase):
 
         expected_keys = ['profile_category', 'profile_type',
                          'data_epistemology', 'epistemology_method',
-                         'base_object_ref', 'data']
+                         'base_object_ref', 'data', 'row_attributemapping_ref']
         self.assertCountEqual(func_profile_data.keys(), expected_keys)
 
         self.assertEqual(func_profile_data['profile_category'], 'organism')

@@ -38,15 +38,20 @@ module KBaseProfile {
       organisms and communities
 
       base_object_ref - base object associated with this functional profile object
+      col_attributemapping_ref - assoicated with community_profile (fetched from the base object)
+      row_attributemapping_ref - assoicated with organism_profile (fetched from the base object)
 
       data_epistemology - how was data acquired. one of: measured, asserted, predicted
       epistemology_method - method/program to be used to acquire data. e.g. FAPROTAX, PICRUSt2
       profile_type - type of profile. e.g. amplicon, MG
       profile_category - category of profile. one of community or organism
 
+      @optional col_attributemapping_ref row_attributemapping_ref
       @optional data_epistemology epistemology_method description
 
       @metadata ws base_object_ref as base_object
+      @metadata ws col_attributemapping_ref as col_attribute_mapping
+      @metadata ws row_attributemapping_ref as row_attribute_mapping
       @metadata ws length(data.row_ids) as row_count
       @metadata ws length(data.col_ids) as col_count
       @metadata ws data_epistemology as data_epistemology
@@ -58,6 +63,9 @@ module KBaseProfile {
     typedef structure {
       WSRef base_object_ref;
       FloatMatrix2D data;
+
+      WSRef col_attributemapping_ref;
+      WSRef row_attributemapping_ref;
 
       string data_epistemology;
       string epistemology_method;

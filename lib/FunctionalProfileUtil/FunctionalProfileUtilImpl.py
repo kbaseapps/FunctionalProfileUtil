@@ -24,7 +24,7 @@ class FunctionalProfileUtil:
     ######################################### noqa
     VERSION = "1.0.0"
     GIT_URL = "https://github.com/Tianhao-Gu/FunctionalProfileUtil.git"
-    GIT_COMMIT_HASH = "f308e49a81f067218a2494de065dfbd2e11a0cbe"
+    GIT_COMMIT_HASH = "2ddd55d742f5e462e8f4e1f7908e661786437d73"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
