@@ -353,11 +353,13 @@ class ProfileImporter:
             logging.info('start building community profile')
             if matrix_data:
                 item_ids = matrix_data.get('col_ids')
+                func_profile_data.pop('row_attributemapping_ref', None)
 
         if profile_category == 'organism':
             logging.info('start building organism profile')
             if matrix_data:
                 item_ids = matrix_data.get('row_ids')
+                func_profile_data.pop('col_attributemapping_ref', None)
 
         profile_data = self._build_profile_data(profile_file_path, item_ids, profile_category,
                                                 staging_file=staging_file)
@@ -407,12 +409,16 @@ class ProfileImporter:
         base_object_data = self.dfu.get_objects(
                                             {'object_refs': [base_object_ref]})['data'][0]['data']
 
+        params['col_attributemapping_ref'] = base_object_data.get('col_attributemapping_ref')
+        params['row_attributemapping_ref'] = base_object_data.get('row_attributemapping_ref')
+
         profile_category = params.get('profile_category', '').lower()
         profile_type = params.get('profile_type', '').lower()
 
         metadata = dict()
         meta_fields = ['profile_category', 'profile_type',
-                       'data_epistemology', 'epistemology_method', 'description']
+                       'data_epistemology', 'epistemology_method', 'description',
+                       'col_attributemapping_ref', 'row_attributemapping_ref']
         for meta_field in meta_fields:
             field_value = params.get(meta_field)
             if field_value:
