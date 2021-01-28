@@ -38,8 +38,8 @@ module KBaseProfile {
       organisms and communities
 
       base_object_ref - base object associated with this functional profile object
-      col_attributemapping_ref - assoicated with community_profile (fetched from the base object)
-      row_attributemapping_ref - assoicated with organism_profile (fetched from the base object)
+      col_attributemapping_ref - associated with community_profile (fetched from the base object)
+      row_attributemapping_ref - associated with organism_profile (fetched from the base object)
 
       data_epistemology - how was data acquired. one of: measured, asserted, predicted
       epistemology_method - method/program to be used to acquire data. e.g. FAPROTAX, PICRUSt2
