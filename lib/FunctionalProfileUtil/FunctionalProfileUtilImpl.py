@@ -22,9 +22,9 @@ class FunctionalProfileUtil:
     # state. A method could easily clobber the state set by another while
     # the latter method is running.
     ######################################### noqa
-    VERSION = "1.0.0"
+    VERSION = "1.0.1"
     GIT_URL = "https://github.com/Tianhao-Gu/FunctionalProfileUtil.git"
-    GIT_COMMIT_HASH = "2ddd55d742f5e462e8f4e1f7908e661786437d73"
+    GIT_COMMIT_HASH = "7d481ee8028b43ccfea1e71277e5ab25400ee6e0"
 
     #BEGIN_CLASS_HEADER
     #END_CLASS_HEADER
