@@ -24,8 +24,7 @@
   "version_tag" : "dev"
 }, {
   "module_name" : "SampleService",
-  "type" : "sdk",
-  "version_tag" : "dev"
+  "type" : "core"
 }, {
   "module_name" : "Workspace",
   "type" : "core",

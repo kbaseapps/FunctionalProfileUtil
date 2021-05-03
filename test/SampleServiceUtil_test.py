@@ -115,7 +115,7 @@ class SampleServiceTest(unittest.TestCase):
 
         print('Getting sample_service URL: {}'.format(ss_url))
 
-        self.assertTrue('SampleService' in ss_url)
+        self.assertTrue('services/sampleservice' in ss_url)
 
     @unittest.skip("Takes too long")
     def test_get_ids_from_samples(self):
